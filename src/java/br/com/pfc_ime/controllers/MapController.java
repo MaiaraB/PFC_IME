@@ -3,20 +3,23 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.com.pfc_ime.app;
+
+package br.com.pfc_ime.controllers;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author maiarareinaldo
+ * @author arthurfernandes
  */
-public class FirstServlet extends HttpServlet {
+@WebServlet(name = "MapController", urlPatterns = {"/mapa"})
+public class MapController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -35,10 +38,10 @@ public class FirstServlet extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet FirstServlet</title>");            
+            out.println("<title>Servlet MapController</title>");            
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet FirstServlet at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet MapController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
