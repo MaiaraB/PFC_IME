@@ -212,6 +212,9 @@ and open the template in the editor.
                                     <a onclick="showAerialWithLabels()" class="list-group-item small">
                                         <i class="fa fa-globe"></i> Aerial with labels
                                     </a>
+                                    <a onclick="showRoad()" class="list-group-item small">
+                                        <i class="fa fa-globe"></i> Road
+                                    </a>
                                 </div>
                                 <a href="#" class="list-group-item" data-toggle="collapse" data-target="#ol" data-parent="#menu">
                                     <i class="fa fa-list-alt"> Outras Camadas</i>
@@ -290,8 +293,8 @@ and open the template in the editor.
                 loadTilesWhileInteracting: true,
                 target: 'map',
                 view: new ol.View({
-                  center: [-6655.5402445057125, 6709968.258934638],
-                  zoom: 13
+                  center: [-4838783.385621721, -2622880.3527477663],
+                  zoom: 11
                 })
             });
 
@@ -332,7 +335,6 @@ and open the template in the editor.
             onChange();*/
             
             function showAerial() {
-                console.log("AQUI");
                 for (var i = 0, ii = baseLayers.length; i < ii; ++i) {
                   baseLayers[i].setVisible(styles[i] == 'Aerial');
                 }
@@ -341,6 +343,12 @@ and open the template in the editor.
             function showAerialWithLabels() {
                 for (var i = 0, ii = baseLayers.length; i < ii; ++i) {
                   baseLayers[i].setVisible(styles[i] == 'AerialWithLabels');
+                }
+            }
+            
+            function showRoad() {
+                for (var i = 0, ii = baseLayers.length; i < ii; ++i) {
+                  baseLayers[i].setVisible(styles[i] == 'Road');
                 }
             }
             
@@ -359,7 +367,21 @@ and open the template in the editor.
                     layerBairros.setVisible(true);
                 } 
             }
-        
+            
+            map.on('singleclick', function(evt){
+                var coord = evt.coordinate;
+                var viewProjection = map.getView().getProjection();
+                var viewResolution = map.getView().getResolution();
+                var url = layerAtracoes.getSource().getGetFeatureInfoUrl(coord, viewResolution, viewProjection, {'INFO_FORMAT' : 'application/json'});
+                if (url) {
+                    console.log(url);
+                    $.getJSON(url, function(d) {
+                        console.log(d);
+                        })
+                } else {
+                    console.log("Uh Oh, something went wrong.");
+                }
+            });
         </script>
     </body>
 </html>
