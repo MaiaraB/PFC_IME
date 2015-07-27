@@ -9,17 +9,70 @@ and open the template in the editor.
         <title>Hello Map</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        
-        <script src='http://ol3js.org/en/master/build/ol.js'></script>
-        <script src='resources/js/main.js'></script>
-        <script src='http://code.jquery.com/jquery-2.1.4.min.js'></script>
-        
-        <link rel='stylesheet' href='http://ol3js.org/en/master/css/ol.css'>
-        <link rel='stylesheet' href='resoures/css/ol.css'>
+        <script src='./resources/js/code.jquery.com_jquery-2.1.4.min.js'></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <script src='./resources/js/ol3js.org_en_master_build_ol.js'></script>
+        <link rel='stylesheet' href='./resources/css/ol3js.org_en_master_css_ol.css'>   
     </head>
-    <body onload='init()'>
-        <div id='map'></div>
-        <button style='position:absolute; left:10px; top:30%' onclick='removeTopLayer()'>Remove Top Layer</button>
-         <button style='position:absolute; left: 10px; top:40%' onclick='swapTopLayer()'>Swap Top Layers</button>
-    </body>
+    <body>
+        <div class="row-fluid">
+            <div class="span12">
+              <div id="map" class="map"></div>
+              <select id="layer-select">
+                <option value="Aerial">Aerial</option>
+                <option value="AerialWithLabels" selected>Aerial with labels</option>
+                <option value="Road">Road</option>
+                <option value="collinsBart">Collins Bart</option>
+                <option value="ordnanceSurvey">Ordnance Survey</option>
+              </select>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var styles = [
+            'Road',
+            'Aerial',
+            'AerialWithLabels',
+            'collinsBart',
+            'ordnanceSurvey'
+            ];
+            var layers = [];
+            var i, ii;
+            for (i = 0, ii = styles.length; i < ii; ++i) {
+            layers.push(new ol.layer.Tile({
+              visible: false,
+              preload: Infinity,
+              source: new ol.source.BingMaps({
+                key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3',
+                imagerySet: styles[i]
+                // use maxZoom 19 to see stretched tiles instead of the BingMaps
+                // "no photos at this zoom level" tiles
+                // maxZoom: 19
+              })
+            }));
+            }
+            var map = new ol.Map({
+            layers: layers,
+            // Improve user experience by loading tiles while dragging/zooming. Will make
+            // zooming choppy on mobile or slow devices.
+            loadTilesWhileInteracting: true,
+            target: 'map',
+            view: new ol.View({
+              center: [-6655.5402445057125, 6709968.258934638],
+              zoom: 13
+            })
+            });
+
+            var select = document.getElementById('layer-select');
+            function onChange() {
+            var style = select.value;
+            for (var i = 0, ii = layers.length; i < ii; ++i) {
+              layers[i].setVisible(styles[i] === style);
+            }
+            }
+            select.addEventListener('change', onChange);
+            onChange();
+        
+        </script>
+
 </html>
