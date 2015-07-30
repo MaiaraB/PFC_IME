@@ -7,7 +7,7 @@
 package br.com.pfc_ime.controllers;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -18,8 +18,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author arthurfernandes
  */
-@WebServlet(name = "MapController", urlPatterns = {"/mapa"})
-public class MapController extends HttpServlet {
+@WebServlet(name = "MapaServlet", urlPatterns = {"/"})
+public class MapaServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -32,19 +32,22 @@ public class MapController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet MapController</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet MapController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
+        ArrayList<Camada> camadas = new ArrayList<>();
+        String defaultStyle = "pinpoint";
+        camadas.add(new Camada("Bairros","bairro_part",""));
+        camadas.add(new Camada("Locais de Interesse","locais_de_interesse",defaultStyle));
+        camadas.add(new Camada("Atrações","atracoes",defaultStyle));
+        camadas.add(new Camada("Atrações do Comitê","atracoes_comite",defaultStyle));
+        camadas.add(new Camada("Competições","competicoes",defaultStyle));
+        camadas.add(new Camada("Hotéis","hoteis",defaultStyle));
+        camadas.add(new Camada("Lanches e Refeições","lanches_refeicoes",defaultStyle));
+        camadas.add(new Camada("Corpo de Bombeiros","corpo_de_bombeiros",defaultStyle));
+        camadas.add(new Camada("Delegacias Policiais","delegacias_policiais",defaultStyle));
+        camadas.add(new Camada("Paradas de Metro","paradas_metro",defaultStyle));
+        camadas.add(new Camada("Paradas de Ônibus","paradas_onibus",""));
+        camadas.add(new Camada("Paradas de Trem","paradas_trens",defaultStyle));
+        request.setAttribute("camadas", camadas);
+        request.getRequestDispatcher("/index.jsp").forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
