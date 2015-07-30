@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author arthurfernandes
  */
-@WebServlet(name = "MapaServlet", urlPatterns = {"/"})
+@WebServlet(name = "MapaServlet", urlPatterns = {"/mapa"})
 public class MapaServlet extends HttpServlet {
 
     /**
