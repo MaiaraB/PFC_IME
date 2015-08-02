@@ -1,4 +1,4 @@
-package br.com.pfc_ime.controllers;
+package br.eb.ime.pfc.domain;
 
 
 import java.io.Serializable;

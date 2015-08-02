@@ -3,11 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+package br.eb.ime.pfc.controllers;
 
-package br.com.pfc_ime.controllers;
-
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import static java.lang.System.out;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Enumeration;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -18,8 +24,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author arthurfernandes
  */
-@WebServlet(name = "MapaServlet", urlPatterns = {"/mapa"})
-public class MapaServlet extends HttpServlet {
+@WebServlet(name = "WMSServlet", urlPatterns = {"/wms"})
+public class WMSServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -32,22 +38,20 @@ public class MapaServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        ArrayList<Camada> camadas = new ArrayList<>();
-        String defaultStyle = "pinpoint";
-        camadas.add(new Camada("Bairros","bairro_part",""));
-        camadas.add(new Camada("Locais de Interesse","locais_de_interesse",defaultStyle));
-        camadas.add(new Camada("Atrações","atracoes",defaultStyle));
-        camadas.add(new Camada("Atrações do Comitê","atracoes_comite",defaultStyle));
-        camadas.add(new Camada("Competições","competicoes",defaultStyle));
-        camadas.add(new Camada("Hotéis","hoteis",defaultStyle));
-        camadas.add(new Camada("Lanches e Refeições","lanches_refeicoes",defaultStyle));
-        camadas.add(new Camada("Corpo de Bombeiros","corpo_de_bombeiros",defaultStyle));
-        camadas.add(new Camada("Delegacias Policiais","delegacias_policiais",defaultStyle));
-        camadas.add(new Camada("Paradas de Metro","paradas_metro",defaultStyle));
-        camadas.add(new Camada("Paradas de Ônibus","paradas_onibus",""));
-        camadas.add(new Camada("Paradas de Trem","paradas_trens",defaultStyle));
-        request.setAttribute("camadas", camadas);
-        request.getRequestDispatcher("/index.jsp").forward(request, response);
+        final String urlName = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/rio2016/wms?"+request.getQueryString();
+        final URL url = new URL(urlName);
+        final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        response.setContentType(request.getContentType());
+        conn.connect();
+        InputStream is = conn.getInputStream();
+        OutputStream os = response.getOutputStream();
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = is.read(buffer)) != -1) {
+            os.write(buffer, 0, len);
+        }
+        os.flush();
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

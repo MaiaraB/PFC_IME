@@ -15,7 +15,7 @@
         <%@include file="/WEB-INF/jspf/default_includes.jspf" %>
         
     </head>
-    <body onload='showRoad()'>
+    <body onload="showBaseLayer('Road')">
         <div class="container">
             <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
                 <div class="container-fluid">
@@ -67,14 +67,14 @@
                                     <i class="fa fa-list-alt"> Camadas Base</i>
                                 </a>
                                 <div id="bl" class="sublinks collapse">
-                                    <a onclick="showAerial()" class="list-group-item small clickable">
-                                        <i class="fa fa-globe" ></i> Satélite
+                                    <a onclick="showBaseLayer('Aerial')" class="list-group-item small clickable">
+                                        <i class="fa fa-globe" ></i> <span>Satélite</span>
                                     </a>
-                                    <a onclick="showRoad()" class="list-group-item small clickable">
-                                        <i class="fa fa-globe"></i> Ruas
+                                    <a onclick="showBaseLayer('Road')" class="list-group-item small clickable">
+                                        <i class="fa fa-globe"></i> <span>Ruas</span>
                                     </a>
-                                    <a onclick="showAerialWithLabels()()" class="list-group-item small clickable">
-                                        <i class="fa fa-globe"></i> Satélite + Ruas
+                                    <a onclick="showBaseLayer('AerialWithLabels')" class="list-group-item small clickable">
+                                        <i class="fa fa-globe"></i> <span>Satélite + Ruas</span>
                                     </a>
                                 </div>
                                 <a href="#" class="list-group-item" data-toggle="collapse" data-target="#ol" data-parent="#menu">
@@ -82,12 +82,10 @@
                                 </a>
                                 <div id="ol" class="sublinks collapse">
                                 <c:forEach var="camada" items="${camadas}" varStatus="status">
-                                    <a onclick="showLayer(${status.index})" class="list-group-item small clickable">
-                                        <i class="fa fa-globe"></i> ${camada.nome}
+                                    <a onclick="showLayer(this,${status.index})" class="list-group-item small clickable">
+                                        <i class="glyphicon-plus"></i> <span class="text-danger">${camada.nome}</span>
                                     </a>
                                 </c:forEach>
-                                
-                                    
                                 </div>
                             </div>
                         </div>
@@ -98,7 +96,6 @@
         <div class="mini-submenu mini-submenu-left pull-left">
             <i class="fa fa-list-alt"></i>
         </div>
-        
         <%@include file="/WEB-INF/jspf/wms_openlayers.jspf" %>
     </body>
 </html>
