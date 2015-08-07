@@ -49,6 +49,7 @@ public class MapaServlet extends HttpServlet {
         camadas.add(new Camada("Paradas de Ônibus","paradas_onibus",""));
         camadas.add(new Camada("Paradas de Trem","paradas_trens",defaultStyle));
         request.setAttribute("camadas", camadas);
+        request.setAttribute("nome_bairro","nm_bairro");
         request.getRequestDispatcher("/WEB-INF/jsp/mapa.jsp").forward(request, response);
     }
 

@@ -92,11 +92,12 @@
                 //document.getElementById('nodelist').innerHTML = "Loading... please wait...";
                 var view = map.getView();
                 var viewResolution = view.getResolution();
+                var viewProjection = view.getProjection();
                 for(i = 0,ii = otherLayers.length;i<ii;i++){
                     if(otherLayers[i].getVisible()){
                         var source = otherLayers[i].getSource();
                         var url = source.getGetFeatureInfoUrl(
-                          evt.coordinate, viewResolution, view.getProjection(),
+                          evt.coordinate, viewResolution, viewProjection,
                           {'INFO_FORMAT': 'application/json', 'FEATURE_COUNT': 50});
                         if (url) {
                             $.getJSON(url,function(data){

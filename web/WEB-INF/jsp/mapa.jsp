@@ -97,7 +97,6 @@
             <i class="fa fa-list-alt"></i>
         </div>
         <div id="popup" class="">
-            
         </div>
         <%@include file="/WEB-INF/jspf/wms_openlayers.jspf" %>
     </body>
