@@ -8,7 +8,7 @@ and open the template in the editor.
     Author     : arthurfernandes
 */
 
-body { overflow: hidden; }
+//body { overflow: hidden; }
 
 .navbar-offset { margin-top: 50px; }
 #map { position: absolute; top: 50px; bottom: 0px; left: 0px; right: 0px; }
@@ -51,4 +51,11 @@ body { overflow: hidden; }
   padding: 0 8px;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.scrollable_list{
+    overflow: auto;
+    overflow-y: scroll;
+    max-height: 50%;
+    height : 50%;
 }

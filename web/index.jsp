@@ -5,98 +5,66 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
     <head>
         <title>PFC IME</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <%@include file="/WEB-INF/jspf/default_includes.jspf" %>
+        <meta name="description" content="">
+        <meta name="author" content="">
+        
+        <link rel="stylesheet" href="resources/css/maxcdn.bootstrapcdn.com_bootstrap_3.3.5_css_bootstrap.min.css">
+        <link rel="stylesheet" href="resources/css/font-awesome-4.4.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="resources/css/indexpage.css">
+        
         
     </head>
-    <body onload="showBaseLayer('Road')">
+    <body>
         <div class="container">
-            <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
-                <div class="container-fluid">
-                    <!-- Brand and toggle get grouped for better mobile display -->
-                    <div class="navbar-header">
-                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand hidden-xs" href="#">RIO 2016</a>
-                        <span class="navbar-brand">Falcon : Operacional</span>
-                    </div>
-                    
-                    <!-- Collect the nav links, forms, and other content for toggling -->
-                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                        
-                        <ul class="nav navbar-nav navbar-right">
-                            <li><a href="#">Ajuda</a></li>
-                            <li class="divider"></li>
-                            <li><a href="#">Sair</a></li>
-                        </ul>
-                    </div><!-- /.navbar-collapse -->
-                </div><!-- /.container-fluid -->
-            </nav>
-        </div>
-        <div class="navbar-offset"></div>
-        <div id="map">
-        </div>
-        <div class="row main-row">
-            <div class="col-sm-4 col-md-3 sidebar sidebar-left pull-left">
-                <div class="panel-group sidebar-body" id="accordion-left">
+            <div class="row">
+                <div class="col-sm-6 col-md-6 col-lg-5 hidden-xs iphone">
+                    <img src="resources/img/iphone.png" alt="">
+                </div>
+                <div class="col-sm-5 col-md-5 col-lg-5 col-md-offset-1 col-sm-offset-1">
                     <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h4 class="panel-title">
-                                <a data-toggle="collapse" href="#layers">
-                                    <i class="fa fa-list-alt"></i>
-                                    Camadas
-                                </a>
-                                <span class="pull-right slide-submenu">
-                                    <i class="fa fa-chevron-left"></i>
-                                </span>
-                            </h4>
+                        <div class="panel-heading"> <strong class=""><h2>PFC IME</h2></strong>
                         </div>
-                        <div id="layers" class="panel-collapse collapse in">
-                            <div class="panel-body list-group">
-                                <a href="#" class="list-group-item" data-toggle="collapse" data-target="#bl" data-parent="#menu">
-                                    <i class="fa fa-list-alt"> Camadas Base</i>
-                                </a>
-                                <div id="bl" class="sublinks collapse">
-                                    <a onclick="showBaseLayer('Aerial')" class="list-group-item small clickable">
-                                        <i class="fa fa-globe" ></i> <span>Satélite</span>
-                                    </a>
-                                    <a onclick="showBaseLayer('Road')" class="list-group-item small clickable">
-                                        <i class="fa fa-globe"></i> <span>Ruas</span>
-                                    </a>
-                                    <a onclick="showBaseLayer('AerialWithLabels')" class="list-group-item small clickable">
-                                        <i class="fa fa-globe"></i> <span>Satélite + Ruas</span>
-                                    </a>
+                        <div class="panel-body">
+                            <form class="form-horizontal" role="form" action="mapa">
+                                <div class="form-group">
+                                    <label for="inputEmail3" class="col-sm-3 control-label">Usuário</label>
+                                    <div class="col-sm-9">
+                                        <input class="form-control" id="inputEmail3" placeholder="usuario">
+                                    </div>
                                 </div>
-                                <a href="#" class="list-group-item" data-toggle="collapse" data-target="#ol" data-parent="#menu">
-                                    <i class="fa fa-list-alt"> Outras Camadas</i>
-                                </a>
-                                <div id="ol" class="sublinks collapse">
-                                <c:forEach var="camada" items="${camadas}" varStatus="status">
-                                    <a onclick="showLayer(this,${status.index})" class="list-group-item small clickable">
-                                        <i class="glyphicon-plus"></i> <span class="text-danger">${camada.nome}</span>
-                                    </a>
-                                </c:forEach>
+                                <div class="form-group">
+                                    <label for="inputPassword3" class="col-sm-3 control-label">Senha</label>
+                                    <div class="col-sm-9">
+                                        <input type="password" class="form-control" id="inputPassword3" placeholder="senha">
+                                    </div>
                                 </div>
-                            </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-3 col-sm-9">
+                                        <div class="checkbox">
+                                            <label class="">
+                                                <input type="checkbox" class="">Mantenha-me conectado</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group last ">
+                                    <div class="col-sm-offset-3 col-sm-9">
+                                        <button type="submit" class="btn btn-success col-xs-12">Entrar</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="mini-submenu mini-submenu-left pull-left">
-            <i class="fa fa-list-alt"></i>
-        </div>
-        <%@include file="/WEB-INF/jspf/wms_openlayers.jspf" %>
+        <script src="resources/js/code.jquery.com_jquery-2.1.4.min.js"></script>
+        <script src="resources/js/maxcdn.bootstrapcdn.com_bootstrap_3.3.5_js_bootstrap.min.js"></script>
     </body>
 </html>
 

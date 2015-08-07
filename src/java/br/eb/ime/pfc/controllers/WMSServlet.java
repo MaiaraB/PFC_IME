@@ -39,6 +39,7 @@ public class WMSServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         final String urlName = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/rio2016/wms?"+request.getQueryString();
+        //final String urlName = "http://localhost/geoserver/rio2016/wms?"+request.getQueryString();
         final URL url = new URL(urlName);
         final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");

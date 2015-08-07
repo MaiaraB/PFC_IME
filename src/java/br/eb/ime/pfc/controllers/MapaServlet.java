@@ -36,8 +36,8 @@ public class MapaServlet extends HttpServlet {
         ArrayList<Camada> camadas = new ArrayList<>();
         String defaultStyle = "pinpoint";
         
-        camadas.add(new Camada("Locais de Interesse","locais_de_interesse",defaultStyle));
         camadas.add(new Camada("Bairros","bairro_part",""));
+        camadas.add(new Camada("Locais de Interesse","locais_de_interesse",defaultStyle));
         camadas.add(new Camada("Atrações","atracoes",defaultStyle));
         camadas.add(new Camada("Atrações do Comitê","atracoes_comite",defaultStyle));
         camadas.add(new Camada("Competições","competicoes",defaultStyle));
@@ -49,7 +49,7 @@ public class MapaServlet extends HttpServlet {
         camadas.add(new Camada("Paradas de Ônibus","paradas_onibus",""));
         camadas.add(new Camada("Paradas de Trem","paradas_trens",defaultStyle));
         request.setAttribute("camadas", camadas);
-        request.getRequestDispatcher("/index.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/jsp/mapa.jsp").forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

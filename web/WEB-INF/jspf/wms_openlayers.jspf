@@ -1,7 +1,7 @@
-<%-- any content can be specified here e.g.: --%>
 <%@ page pageEncoding="UTF-8" %>
-<!--%@taglib prefix="c" uri="http://java.sun.com/jstl/core" %-->
+
 <script type="text/javascript">
+            
             var styles = [
             'Road',
             'Aerial',
@@ -44,7 +44,8 @@
                     preload: Infinity,
                     serverType: 'geoserver',
                     source: new ol.source.TileWMS(({
-                        url:'/PFC_IME/wms',
+                        //url:'wms',
+                        url: 'wms',
                         params: { 
                             STYLES : '${camada.style}',
                             LAYERS: 'rio2016:${camada.wmsId}',
@@ -81,57 +82,12 @@
                     $(element).children('span').addClass('text-success');
                 } 
             }
-            /*
-            map.on('singleclick', function(evt) {
-                //document.getElementById('info').innerHTML = '';
-                var coord = evt.coordinate;
-                var viewProjection = map.getView().getProjection();
-                var viewResolution = map.getView().getResolution();
-                var url = otherLayers[0].getSource().getGetFeatureInfoUrl(
-                    coord, viewResolution, viewProjection,
-                    {'INFO_FORMAT': 'application/json'});
-                if (url) {
-                  //document.getElementById('info').innerHTML =
-                    //  '<iframe seamless src="' + url + '"></iframe>';
-                    console.log($.get(url,function(data){
-                        
-                    }));
-                }
-              });*/
-
-            /*
-            map.on('pointermove', function(evt) {
-                if (evt.dragging) {
-                  return;
-                }
-                var pixel = map.getEventPixel(evt.originalEvent);
-                var hit = map.forEachLayerAtPixel(pixel, function(layer) {
-                  return true;
-                });
-                map.getTargetElement().style.cursor = hit ? 'pointer' : '';
-              });
-            */
             
-            /*map.on('singleclick', function(evt){
-                var coord = evt.coordinate;
-                var viewProjection = map.getView().getProjection();
-                var viewResolution = map.getView().getResolution();
-                var url = otherLayers[0].getSource().getGetFeatureInfoUrl(coord, viewResolution, viewProjection, {'INFO_FORMAT' : 'application/json'});
-                if (url) {
-                    url = '/PFC_IME/proxy?url=' + encodeURI(url);
-                    console.log(url);
-                    $.get(url, function(data){
-                        alert("Data: " + data);
-                      });
-                    
-                    $.getJSON(url, function(d) {
-                        console.log(d);
-                        })
-                } else {
-                    console.log("Uh Oh, something went wrong.");
-                }
-            });*/
-            
+            var popup = new ol.Overlay({
+                element: document.getElementById('popup')
+            });
+            map.addOverlay(popup);
+    
             map.on('singleclick', function(evt) {
                 //document.getElementById('nodelist').innerHTML = "Loading... please wait...";
                 var view = map.getView();
@@ -144,11 +100,33 @@
                           {'INFO_FORMAT': 'application/json', 'FEATURE_COUNT': 50});
                         if (url) {
                             $.getJSON(url,function(data){
-                                alert(data.features.length);
+                                
                             });
                         }
                     }
-                }      
+                }
+                /*
+                var element = popup.getElement();
+                var coordinate = evt.coordinate;
+                var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
+                    coordinate, 'EPSG:3857', 'EPSG:4326'));
+
+                $(element).popover('destroy');
+                popup.setPosition(coordinate);
+                // the keys are quoted to prevent renaming in ADVANCED mode.
+                $(element).popover({
+                  'placement': 'top',
+                  'animation': false,
+                  'html': true,
+                  'content': '<p>The location you clicked was:</p><code>' + hdms + '</code>'
                 });
-               
+                $(element).popover('show');
+                */
+            });
+            
+
+            
+            
+            
+            
         </script>
