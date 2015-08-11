@@ -6,7 +6,7 @@
 
 package br.eb.ime.pfc.controllers;
 
-import br.eb.ime.pfc.domain.Camada;
+import br.eb.ime.pfc.domain.Layer;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.servlet.ServletException;
@@ -33,21 +33,21 @@ public class MapaServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        ArrayList<Camada> camadas = new ArrayList<>();
+        ArrayList<Layer> camadas = new ArrayList<>();
         String defaultStyle = "pinpoint";
         
-        camadas.add(new Camada("Bairros","bairro_part",""));
-        camadas.add(new Camada("Locais de Interesse","locais_de_interesse",defaultStyle));
-        camadas.add(new Camada("Atrações","atracoes",defaultStyle));
-        camadas.add(new Camada("Atrações do Comitê","atracoes_comite",defaultStyle));
-        camadas.add(new Camada("Competições","competicoes",defaultStyle));
-        camadas.add(new Camada("Hotéis","hoteis",defaultStyle));
-        camadas.add(new Camada("Lanches e Refeições","lanches_refeicoes",defaultStyle));
-        camadas.add(new Camada("Corpo de Bombeiros","corpo_de_bombeiros",defaultStyle));
-        camadas.add(new Camada("Delegacias Policiais","delegacias_policiais",defaultStyle));
-        camadas.add(new Camada("Paradas de Metro","paradas_metro",defaultStyle));
-        camadas.add(new Camada("Paradas de Ônibus","paradas_onibus",""));
-        camadas.add(new Camada("Paradas de Trem","paradas_trens",defaultStyle));
+        camadas.add(new Layer("Bairros","bairro_part",""));
+        camadas.add(new Layer("Locais de Interesse","locais_de_interesse",defaultStyle));
+        camadas.add(new Layer("Atrações","atracoes",defaultStyle));
+        camadas.add(new Layer("Atrações do Comitê","atracoes_comite",defaultStyle));
+        camadas.add(new Layer("Competições","competicoes",defaultStyle));
+        camadas.add(new Layer("Hotéis","hoteis",defaultStyle));
+        camadas.add(new Layer("Lanches e Refeições","lanches_refeicoes",defaultStyle));
+        camadas.add(new Layer("Corpo de Bombeiros","corpo_de_bombeiros",defaultStyle));
+        camadas.add(new Layer("Delegacias Policiais","delegacias_policiais",defaultStyle));
+        camadas.add(new Layer("Paradas de Metro","paradas_metro",defaultStyle));
+        camadas.add(new Layer("Paradas de Ônibus","paradas_onibus",""));
+        camadas.add(new Layer("Paradas de Trem","paradas_trens",defaultStyle));
         request.setAttribute("camadas", camadas);
         request.setAttribute("nome_bairro","nm_bairro");
         request.getRequestDispatcher("/WEB-INF/jsp/mapa.jsp").forward(request, response);
