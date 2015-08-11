@@ -85,7 +85,7 @@ public class AccessLevel {
     /**
      * Add another Layer to this Access Level. 
      * @param layer to be accessed by this Access Level
-     * @throws LayerRepetitionException
+     * @throws br.eb.ime.pfc.domain.AccessLevel.LayerRepetitionException
      * When the layer added has the same wmsId of another layer already added.
      */
     public void addLayer(Layer layer) throws LayerRepetitionException{

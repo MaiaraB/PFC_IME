@@ -116,7 +116,7 @@ public class Layer implements Serializable {
      * Add a feature to this Layer.
      * @param feature 
      * The feature to be added
-     * @throws FeatureRepetitionException when the user tries to add a feature
+     * @throws br.eb.ime.pfc.domain.Layer.FeatureRepetitionException when the user tries to add a feature
      * with the same wmsId of a feature that already exists in this Layer.
      */
     public void addFeature(Feature feature) throws FeatureRepetitionException{
@@ -132,8 +132,8 @@ public class Layer implements Serializable {
      * Set the opacity of this Layer.
      * @param opacity 
      * Requires opacity to be a value between 0.0 and 1.0.
-     * @throws OpacityOutOfRangeException
-     * When opacity < 0.0 or opacity > 1.0.
+     * @throws br.eb.ime.pfc.domain.Layer.OpacityOutOfRangeException
+     * When opacity is less than 0.0 or opacity is greater than 1.0.
      */
     public void setOpacity(double opacity) throws OpacityOutOfRangeException{
         if(opacity < 0.0 || opacity > 1.0){

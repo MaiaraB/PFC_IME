@@ -1,7 +1,7 @@
 package br.eb.ime.pfc.domain;
 
 /**
- * A representation of a WMS feature of a WMS layer.
+ * A representation of a WMS Feature of a WMS Layer.
  * 
  * A feature contains a name that is visible to the user, and a wmsId that 
  * identifies this feature in the WMS service, where the information retrieved
@@ -16,7 +16,6 @@ public class Feature {
      * Representation invariant:
      * wmsId must not be empty String
      * name must not be null.
-     *
     */
     
     /**

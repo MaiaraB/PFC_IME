@@ -15,6 +15,13 @@ public class User {
     private final String password;
     private final AccessLevel accessLevel;
     
+    /*
+    * Representation Invariant:
+    * username must not be empty.
+    * password must not be empty.
+    * accessLevel must not be null;
+    */
+    
     /**
      * Constructs a user with the specified username, password and Access Level
      * @param username
