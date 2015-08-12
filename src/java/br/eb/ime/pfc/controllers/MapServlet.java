@@ -19,8 +19,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author arthurfernandes
  */
-@WebServlet(name = "MapaServlet", urlPatterns = {"/mapa"})
-public class MapaServlet extends HttpServlet {
+@WebServlet(name = "MapServlet", urlPatterns = {"/map"})
+public class MapServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>

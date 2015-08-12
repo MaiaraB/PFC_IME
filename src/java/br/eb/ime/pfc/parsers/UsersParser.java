@@ -21,29 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-package br.eb.ime.pfc.listeners;
-
-import br.eb.ime.pfc.domain.Service;
-import br.eb.ime.pfc.domain.Service.ServiceBuilder;
-import br.eb.ime.pfc.domain.ServiceHolder;
-import javax.servlet.ServletContextEvent;
+package br.eb.ime.pfc.parsers;
 
 /**
- * Web application lifecycle listener.
  *
+ * @author arthurfernandes
  */
-public class ServletContextListener implements javax.servlet.ServletContextListener {
-
-    @Override
-    public void contextInitialized(ServletContextEvent sce) {
-        final ServiceBuilder serviceBuilder = new ServiceBuilder();
-        final Service service = serviceBuilder.buildService();
-        ServiceHolder.getInstance().setService(service);
-    }
-
-    @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-        
-    }
+public class UsersParser {
+    
 }
