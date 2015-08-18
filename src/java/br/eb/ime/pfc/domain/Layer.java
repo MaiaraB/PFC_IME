@@ -5,6 +5,13 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 /**
  * A mutable representation of a WMS layer.
@@ -18,15 +25,23 @@ import java.util.List;
  * -Opacity: Defines 
  * 
  */
+@Entity
+@Table(name = "layers")
 public class Layer implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     public static final double DEFAULT_OPACITY = 1.0;
     public static final String DEFAULT_STYLE = "";
     
-    private final String name;
-    private final String wmsId;
+    
+    @Column(name="NAME") private final String name;
+    @Id @Column(name="LAYER_ID") private final String wmsId;
+    @Column(name="STYLE") private String style;
+    @Column(name="OPACITY") private double opacity;
+    
+    @OneToMany(mappedBy = "layer",targetEntity=Feature.class,fetch=FetchType.EAGER,cascade =CascadeType.ALL)
     private final List<Feature> features;
-    private String style;
-    private double opacity;
+    
     
     /*
     * Representation Invariant:
@@ -49,6 +64,14 @@ public class Layer implements Serializable {
     public Layer(String name,String wmsId){
         this.name = name;
         this.wmsId = wmsId;
+        this.style = DEFAULT_STYLE;
+        this.opacity = DEFAULT_OPACITY;
+        this.features = new LinkedList<>();
+    }
+    
+    protected Layer(){
+        this.name = null;
+        this.wmsId = null;
         this.style = DEFAULT_STYLE;
         this.opacity = DEFAULT_OPACITY;
         this.features = new LinkedList<>();

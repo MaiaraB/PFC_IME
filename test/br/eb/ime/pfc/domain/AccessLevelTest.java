@@ -21,12 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package br.eb.ime.pfc.parsers;
+package br.eb.ime.pfc.domain;
+
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
  *
  * @author arthurfernandes
  */
-public class UsersParser {
+public class AccessLevelTest {
+    
+    public AccessLevelTest() {
+    }
+
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws Exception {
+    }
+
+    @BeforeMethod
+    public void setUpMethod() throws Exception {
+    }
+
+    @AfterMethod
+    public void tearDownMethod() throws Exception {
+    }
+    
     
 }

@@ -1,10 +1,20 @@
 package br.eb.ime.pfc.domain;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * Represents the Access Level of a User.
@@ -15,17 +25,33 @@ import java.util.Map;
  * layers specified by the Access Level.
  * The Access Level is identified by its name.
  */
-public class AccessLevel {
+@Entity
+@Table(name = "access_levels")
+public class AccessLevel implements Serializable{
     
+    private static final long serialVersionUID = 1L;
+    
+    @Id
+    @Column(name = "ACCESSLEVEL_ID")
     private final String name;
+    
+    @ManyToMany(fetch=FetchType.EAGER)
+    @JoinTable(name = "LAYER_ACCESSLEVEL",
+                //joinColumns = @JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID"),
+                //inverseJoinColumns = @JoinColumn(name="ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")
+                joinColumns = {@JoinColumn(name="ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")},
+                inverseJoinColumns = {@JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID")}
+    )
+    private final List<Layer> layers;
+    
+    @Transient
     private final Map<String,Layer> mapLayers;
-    private final List<Layer> orderedLayers;
     
     /*
     * Representation Invariant:
     * name must not be empty
-    * orderedLayers must contain all values of mapLayers
-    * orderedLayers must have the same size of mapLayers
+    * layers must contain all values of mapLayers
+    * layers must have the same size of mapLayers
     */
     
     //Constructors
@@ -38,8 +64,17 @@ public class AccessLevel {
     public AccessLevel(String name){
         this.name = name;
         this.mapLayers = new HashMap<>();
-        this.orderedLayers = new LinkedList<>();
+        this.layers = new LinkedList<>();
         checkRep();
+    }
+    
+    /**
+     * Default Constructor for serialization/deserialization process only.
+     */
+    protected AccessLevel(){
+        name = null;
+        this.mapLayers = new HashMap<>();
+        this.layers = new LinkedList<>();
     }
     
     /**
@@ -47,8 +82,8 @@ public class AccessLevel {
      */
     private void checkRep(){
         assert !this.name.equals("");
-        assert mapLayers.size() == orderedLayers.size();
-        assert orderedLayers.containsAll(mapLayers.values());
+        assert mapLayers.size() == layers.size();
+        assert layers.containsAll(mapLayers.values());
     }
     
     /**
@@ -66,7 +101,7 @@ public class AccessLevel {
      * the order they were added to this Access Level.
      */
     public List<Layer> getLayers(){
-        return Collections.unmodifiableList(orderedLayers);
+        return Collections.unmodifiableList(layers);
     }
     
     /**
@@ -92,7 +127,7 @@ public class AccessLevel {
         if(hasAccessToLayer(layer.getWmsId())){
             throw new LayerRepetitionException("Cannot add Layer with the same wmsId of a Layer in use.");
         }
-        this.orderedLayers.add(layer);
+        this.layers.add(layer);
         this.mapLayers.put(layer.getWmsId(), layer);
         
         checkRep();

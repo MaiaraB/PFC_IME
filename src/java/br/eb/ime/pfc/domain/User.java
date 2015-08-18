@@ -1,6 +1,13 @@
 package br.eb.ime.pfc.domain;
 
+import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * A representation of a User in this system.
@@ -10,9 +17,21 @@ import java.util.Objects;
  * A user also contains an access level that allows him to access a limited 
  * group of layers.
  */
-public class User {
+@Entity
+@Table(name = "users")
+public class User implements Serializable{
+    
+    private static final long serialVersionUID = 1L;
+    
+    @Id
+    @Column(name = "USER_ID")
     private final String username;
+    
+    @Column(name = "PASSWORD")
     private final String password;
+    
+    @ManyToOne(optional=false)
+    @JoinColumn(name = "ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")
     private final AccessLevel accessLevel;
     
     /*
@@ -36,6 +55,12 @@ public class User {
         this.password = password;
         this.accessLevel = accessLevel;
         checkRep();
+    }
+    
+    protected User(){
+        this.username = null;
+        this.password = null;
+        this.accessLevel = null;
     }
     
     /**
@@ -75,7 +100,7 @@ public class User {
     public boolean equals(Object o){
         if(o instanceof User){
             final User other = (User) o;
-            return (other.username.equals(this.username));
+            return (other.getUsername().equals(this.username));
         }
         else{
             return false;

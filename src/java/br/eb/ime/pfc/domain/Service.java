@@ -1,5 +1,6 @@
 package br.eb.ime.pfc.domain;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +18,9 @@ import java.util.Map;
  * documentation for details.
  * 
  */
-public class Service {
+public class Service implements Serializable{
+    private static final long serialVersionUID = 1L;
+    
     private final Map<String,User> users;
     private final Map<String,Layer> layers;
     private final Map<String,AccessLevel> accessLevels;

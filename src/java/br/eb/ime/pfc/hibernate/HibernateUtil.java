@@ -21,46 +21,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-package br.eb.ime.pfc.listeners;
+package br.eb.ime.pfc.hibernate;
 
 import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.Feature;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
-import br.eb.ime.pfc.hibernate.HibernateUtil;
-import javax.servlet.ServletContextEvent;
 import org.hibernate.Session;
+import org.hibernate.cfg.AnnotationConfiguration;
+import org.hibernate.SessionFactory;
 
 /**
- * Web application lifecycle listener.
+ * Hibernate Utility class with a convenient method to get Session Factory
+ * object.
  *
+ * @author arthurfernandes
  */
-public class ServletContextListener implements javax.servlet.ServletContextListener {
+public class HibernateUtil {
 
-    @Override
-    public void contextInitialized(ServletContextEvent sce) {
-        //final ServiceBuilder serviceBuilder = new ServiceBuilder();
-        //final Service service = serviceBuilder.buildService();
-        //session.close();
-        /*AccessLevel acl1 = new AccessLevel("estrategico");
-        AccessLevel acl2 = new AccessLevel("operacional");
-        Layer lay1 = new Layer("Hotel","hoteis");
-        Feature feat1 = new Feature("Endereco","endereco",lay1);
-        lay1.addFeature(feat1);
-        acl1.addLayer(lay1);
-        
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
-        session.beginTransaction();
-        session.save(acl1);
-        session.save(new User("arthur","1234",acl1));
-        session.getTransaction().commit();
-        session.close();*/
+    private static final SessionFactory sessionFactory;
+    
+    static {
+        try {
+            // Create the SessionFactory from standard (hibernate.cfg.xml) 
+            // config file.
+            sessionFactory = new AnnotationConfiguration().configure("/br/eb/ime/pfc/hibernate/hibernate.cfg.xml").buildSessionFactory();
+        } catch (Throwable ex) {
+            // Log the exception. 
+            System.out.println("Initial SessionFactory creation failed." + ex);
+            throw new ExceptionInInitializerError(ex);
+        }
     }
-
-    @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-        
+    
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+    
+    public static void main(String args[]){
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.getTransaction().begin();
+        AccessLevel ac1 = new AccessLevel("operacional");
+        User user1 = new User("user2","12345",ac1);
+        Layer lay1 = new Layer("Restaurantes","Restaurantes");
+        Feature feat1 = new Feature("endereco","end",lay1);
+        ac1.addLayer(lay1);
+        lay1.addFeature(feat1);
+        //session.save(feat1);
+        session.save(lay1);
+        session.save(ac1);
+        session.save(user1);
+        session.getTransaction().commit();
+        session.close();
     }
 }
