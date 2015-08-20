@@ -24,7 +24,6 @@
 package br.eb.ime.pfc.hibernate;
 
 import br.eb.ime.pfc.domain.AccessLevel;
-import br.eb.ime.pfc.domain.Feature;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
 import org.hibernate.HibernateException;
@@ -68,23 +67,95 @@ public class HibernateUtil {
             return sessionFactory.getCurrentSession();
         }
         else{
-            throw new HibernateException("Could not initialize Hibernate");
+            throw new HibernateException("No session open.");
         }
+    }
+    
+    private HibernateUtil(){
+        
     }
     
     public static void main(String args[]){
         Session session = HibernateUtil.getSessionFactory().openSession();
-        session.getTransaction().begin();
-        AccessLevel ac1 = new AccessLevel("operacional");
-        User user1 = new User("user2","12345",ac1);
-        Layer lay1 = new Layer("Restaurantes","Restaurantes");
-        Feature feat1 = new Feature("endereco","end",lay1);
-        ac1.addLayer(lay1);
-        lay1.addFeature(feat1);
-        //session.save(feat1);
-        session.save(lay1);
-        session.save(ac1);
-        session.save(user1);
+        session.beginTransaction();
+        
+        //AccessLevel
+        AccessLevel operacional = new AccessLevel("operacional");
+        AccessLevel estrategico = new AccessLevel("estrategico");
+        AccessLevel tatico = new AccessLevel("tatico");
+        //User
+        User userTatico = new User("falcon","123",tatico);
+        User userOperacional = new User("wolf","123",operacional);
+        User userEstrategico = new User("lion","123",estrategico);
+        //Layer
+        Layer bairros = new Layer("Bairros","rio2016:bairro_part");
+        bairros.setOpacity(0.5);
+        Layer locaisDeInteresse = new Layer("Locais de Interesse","rio2016:locais_de_interesse");
+        Layer atracoes = new Layer("Atrações","rio2016:atracoes");
+        Layer atracoesComite = new Layer("Atrações do Comitê","rio2016:atracoes_comite");
+        Layer competicoes = new Layer("Competições","rio2016:competicoes");
+        Layer hoteis = new Layer("Hotéis","rio2016:hoteis");
+        hoteis.setStyle("pinpoint");
+        Layer lanchesRefeicoes = new Layer("Lanches e Refeições","rio2016:lanches_refeicoes");
+        Layer corpoBombeiros = new Layer("Corpo de Bombeiros","rio2016:corpo_de_bombeiros");
+        Layer delegacias = new Layer("Delegacias Policiais","rio2016:delegacias_policiais");
+        Layer metro = new Layer("Paradas de Metro","rio2016:paradas_metro");
+        Layer onibus = new Layer("Paradas de Ônibus","rio2016:paradas_onibus");
+        Layer trem = new Layer("Paradas de Trem","rio2016:paradas_trens");
+        
+        //Tatico
+        tatico.addLayer(bairros);
+        tatico.addLayer(trem);
+        tatico.addLayer(corpoBombeiros);
+        tatico.addLayer(delegacias);
+        tatico.addLayer(metro);
+        tatico.addLayer(onibus);
+        //Operacional
+        operacional.addLayer(bairros);
+        operacional.addLayer(trem);
+        operacional.addLayer(locaisDeInteresse);
+        operacional.addLayer(atracoes);
+        operacional.addLayer(atracoesComite);
+        operacional.addLayer(competicoes);
+        operacional.addLayer(hoteis);
+        operacional.addLayer(lanchesRefeicoes);
+        //Estrategico
+        estrategico.addLayer(bairros);
+        estrategico.addLayer(locaisDeInteresse);
+        estrategico.addLayer(atracoes);
+        estrategico.addLayer(atracoesComite);
+        estrategico.addLayer(competicoes);
+        estrategico.addLayer(hoteis);
+        estrategico.addLayer(lanchesRefeicoes);
+        estrategico.addLayer(corpoBombeiros);
+        estrategico.addLayer(delegacias);
+        estrategico.addLayer(metro);
+        estrategico.addLayer(onibus);
+        estrategico.addLayer(trem);
+        
+        //SAVE LAYERS
+        session.save(bairros);
+        session.save(locaisDeInteresse);
+        session.save(atracoes);
+        session.save(atracoesComite);
+        session.save(competicoes);
+        session.save(hoteis);
+        session.save(lanchesRefeicoes);
+        session.save(corpoBombeiros);
+        session.save(delegacias);
+        session.save(metro);
+        session.save(onibus);
+        session.save(trem);
+        
+        //SAVE ACCESS LEVEL
+        session.save(operacional);
+        session.save(estrategico);
+        session.save(tatico);
+        //SAVE USERS
+        session.save(userOperacional);
+        session.save(userEstrategico);
+        session.save(userTatico);
+        
         session.getTransaction().commit();
         session.close();
     }

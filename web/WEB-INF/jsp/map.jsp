@@ -28,7 +28,7 @@
                             <span class="icon-bar"></span>
                         </button>
                         <a class="navbar-brand hidden-xs" href="#">RIO 2016</a>
-                        <span class="navbar-brand">Falcon : Operacional</span>
+                        <span class="navbar-brand">${username} : ${accessLevelName}</span>
                     </div>
                     
                     <!-- Collect the nav links, forms, and other content for toggling -->
@@ -81,9 +81,9 @@
                                     <i class="fa fa-list-alt"> Outras Camadas</i>
                                 </a>
                                 <div id="ol" class="sublinks collapse">
-                                <c:forEach var="camada" items="${camadas}" varStatus="status">
+                                <c:forEach var="layer" items="${layers}" varStatus="status">
                                     <a onclick="showLayer(this,${status.index})" class="list-group-item small clickable">
-                                        <i class="glyphicon-plus"></i> <span class="text-danger">${camada.name}</span>
+                                        <i class="glyphicon-plus"></i> <span class="text-danger">${layer.name}</span>
                                     </a>
                                 </c:forEach>
                                 </div>

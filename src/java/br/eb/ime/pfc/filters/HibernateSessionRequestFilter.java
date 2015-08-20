@@ -63,7 +63,6 @@ public class HibernateSessionRequestFilter implements Filter {
             log("TransactionHandlerFilter:DoBeforeProcessing");
         }
 
-        
 	SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
         this.session = sessionFactory.openSession();
         this.session.beginTransaction();

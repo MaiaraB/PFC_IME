@@ -1,7 +1,6 @@
 package br.eb.ime.pfc.domain;
 
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 
 /*
  * The MIT License

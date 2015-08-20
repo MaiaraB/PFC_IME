@@ -54,30 +54,7 @@ public class ListLayersServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        List results = session.createQuery("from User").list();
-        session.getTransaction().commit();
-        session.close();
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet ListLayersServlet</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet ListLayersServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-            for(User user : (List<User>) results){
-                out.println("<h1>"+user.getUsername()+" "+user.getPassword()+" "+user.getAccessLevel().getName()+"</h1>");
-                for(Layer layer : user.getAccessLevel().getLayers()){
-                    out.println("<h2>"+layer.getName()+layer.getWmsId()+layer.getStyle()+layer.getOpacity()+"</h2>");
-                }
-            }
-        }
+        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

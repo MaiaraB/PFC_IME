@@ -19,7 +19,6 @@
         <link rel="stylesheet" href="resources/css/font-awesome-4.4.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="resources/css/indexpage.css">
         
-        
     </head>
     <body>
         <div class="container">

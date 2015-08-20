@@ -6,9 +6,11 @@
 
 package br.eb.ime.pfc.controllers;
 
+import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.Layer;
+import br.eb.ime.pfc.domain.User;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -33,23 +35,16 @@ public class MapServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        ArrayList<Layer> camadas = new ArrayList<>();
-        String defaultStyle = "pinpoint";
+        final User user = (User) request.getSession().getAttribute("user");
+        if(user == null){
+            response.sendRedirect(request.getContextPath());
+        }
         
-        camadas.add(new Layer("Bairros","bairro_part"));
-        camadas.add(new Layer("Locais de Interesse","locais_de_interesse"));
-        camadas.add(new Layer("Atrações","atracoes"));
-        camadas.add(new Layer("Atrações do Comitê","atracoes_comite"));
-        camadas.add(new Layer("Competições","competicoes"));
-        camadas.add(new Layer("Hotéis","hoteis"));
-        camadas.add(new Layer("Lanches e Refeições","lanches_refeicoes"));
-        camadas.add(new Layer("Corpo de Bombeiros","corpo_de_bombeiros"));
-        camadas.add(new Layer("Delegacias Policiais","delegacias_policiais"));
-        camadas.add(new Layer("Paradas de Metro","paradas_metro"));
-        camadas.add(new Layer("Paradas de Ônibus","paradas_onibus"));
-        camadas.add(new Layer("Paradas de Trem","paradas_trens"));
-        request.setAttribute("camadas", camadas);
-        request.setAttribute("nome_bairro","nm_bairro");
+        final AccessLevel accessLevel = user.getAccessLevel();
+        final List<Layer> layers = accessLevel.getLayers();
+        request.setAttribute("username", user.getUsername());
+        request.setAttribute("accessLevelName", accessLevel.getName());
+        request.setAttribute("layers", layers);
         request.getRequestDispatcher("/WEB-INF/jsp/map.jsp").forward(request, response);
     }
 

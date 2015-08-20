@@ -5,12 +5,16 @@
  */
 package br.eb.ime.pfc.controllers;
 
+import br.eb.ime.pfc.domain.AccessLevel;
+import br.eb.ime.pfc.domain.User;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -24,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "WMSProxyServlet", urlPatterns = {"/wms"})
 public class WMSProxyServlet extends HttpServlet {
     private static final String GEOSERVER_URL = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/rio2016/wms?";
+    
     //private static final String GEOSERVER_UFL = http://localhost/geoserver/rio2016/wms?
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -41,12 +46,60 @@ public class WMSProxyServlet extends HttpServlet {
             redirectStream(request,response);
         }
         else{
+            //TODO: specify error page
             return;
         }
     }
 
     private boolean authenticateLayers(HttpServletRequest request, HttpServletResponse response){
-        return true;
+        User user = (User) request.getSession().getAttribute("user");
+        
+        if(user == null){
+            return false;
+        }
+        else{
+            final String layerParam = request.getParameter("LAYERS");
+            if(layerParam == null){
+                return false;
+            }
+            
+            List<String> layerWmsIds = getLayerIds(request,layerParam);
+            
+            //User isn't trying to access any layer deny it
+            if(layerWmsIds.isEmpty()){
+                return false;
+            }
+            
+            final AccessLevel accessLevel = user.getAccessLevel();
+            for(String layerWmsId : layerWmsIds){
+                if(!accessLevel.hasAccessToLayer(layerWmsId)){
+                    
+                    request.getServletContext().log("LAYERID:"+layerWmsId+","+accessLevel.getLayers().get(0).getWmsId()+
+                            ","+accessLevel.hasAccessToLayer("rio2016:bairro_part")+","+
+                            accessLevel.getLayers().get(0).getWmsId().equals("rio2016:bairro_part"));
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+    }
+    
+    private List<String> getLayerIds(HttpServletRequest request,String layerParam){
+        
+        final List<String> layerIds = new ArrayList<>();
+        
+        //Remove Spaces
+        layerParam = layerParam.replaceAll(" ", "");
+        
+        String layerURIArray[] = layerParam.split(",");
+        for(String layerURI : layerURIArray){
+            if(!layerURI.equals("")){
+                layerIds.add(layerURI);
+            }
+        }        
+        
+        return layerIds;
     }
     
     private void redirectStream(HttpServletRequest request, HttpServletResponse response){

@@ -110,7 +110,12 @@ public class AccessLevel implements Serializable{
      * wmsId.
      */
     public boolean hasAccessToLayer(String layerWmsId){
-        return mapLayers.containsKey(layerWmsId);
+        for(Layer layer : this.layers){
+            if(layer.getWmsId().equals(layerWmsId)){
+                return true;
+            }
+        }
+        return false;
     }
     
     //Mutators

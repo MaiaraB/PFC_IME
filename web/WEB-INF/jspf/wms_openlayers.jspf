@@ -37,7 +37,7 @@
             
             var otherLayers = [];
             
-            <c:forEach var="camada" items="${camadas}">
+            <c:forEach var="layer" items="${layers}">
                        
                 otherLayers.push(new ol.layer.Tile({
                     visible: false,
@@ -47,11 +47,11 @@
                         //url:'wms',
                         url: 'wms',
                         params: { 
-                            STYLES : '${camada.style}',
-                            LAYERS: 'rio2016:${camada.wmsId}',
+                            STYLES : '${layer.style}',
+                            LAYERS: '${layer.wmsId}',
                         }
                     })),
-                    opacity : 0.5
+                    opacity : ${layer.opacity}
                 }));
             </c:forEach>
             
