@@ -24,13 +24,9 @@
 
 package br.eb.ime.pfc.listeners;
 
-import br.eb.ime.pfc.domain.AccessLevel;
-import br.eb.ime.pfc.domain.Feature;
-import br.eb.ime.pfc.domain.Layer;
-import br.eb.ime.pfc.domain.User;
 import br.eb.ime.pfc.hibernate.HibernateUtil;
 import javax.servlet.ServletContextEvent;
-import org.hibernate.Session;
+import org.hibernate.HibernateException;
 
 /**
  * Web application lifecycle listener.
@@ -40,23 +36,13 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        //final ServiceBuilder serviceBuilder = new ServiceBuilder();
-        //final Service service = serviceBuilder.buildService();
-        //session.close();
-        /*AccessLevel acl1 = new AccessLevel("estrategico");
-        AccessLevel acl2 = new AccessLevel("operacional");
-        Layer lay1 = new Layer("Hotel","hoteis");
-        Feature feat1 = new Feature("Endereco","endereco",lay1);
-        lay1.addFeature(feat1);
-        acl1.addLayer(lay1);
         
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
-        session.beginTransaction();
-        session.save(acl1);
-        session.save(new User("arthur","1234",acl1));
-        session.getTransaction().commit();
-        session.close();*/
+        try{
+            HibernateUtil.getSessionFactory();
+        }
+        catch(HibernateException e){
+            
+        }
     }
 
     @Override

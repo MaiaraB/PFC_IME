@@ -1,5 +1,6 @@
 package br.eb.ime.pfc.domain;
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 /*
@@ -31,25 +32,25 @@ import org.hibernate.SessionFactory;
  * @author arthurfernandes
  */
 public class LayerManager {
-    private final SessionFactory sessionFactory;
+    private final Session session;
     
-    public LayerManager(SessionFactory sessionFactory){
-        this.sessionFactory = sessionFactory;
+    public LayerManager(Session session){
+        this.session = session;
     }
     
     public void create(Layer layer){
-        this.sessionFactory.getCurrentSession().save(layer);
+        this.session.save(layer);
     }
     
     public Layer getLayerById(String wmsId){
-        return (Layer) this.sessionFactory.getCurrentSession().get(Layer.class, wmsId);
+        return (Layer) this.session.get(Layer.class, wmsId);
     }
     
     public void update(Layer layer){
-        this.sessionFactory.getCurrentSession().update(layer);
+        this.session.update(layer);
     }
     
     public void delete(Layer layer){
-        this.sessionFactory.getCurrentSession().delete(layer);
+        this.session.delete(layer);
     }
 }

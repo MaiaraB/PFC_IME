@@ -136,7 +136,7 @@ public class AccessLevel implements Serializable{
      * and the layer has the same wmsId of a layer already present in the 
      * AccessLevel.
      */
-    public class LayerRepetitionException extends RuntimeException{
+    public static class LayerRepetitionException extends RuntimeException{
         
         private static final long serialVersionUID = 1L;
         

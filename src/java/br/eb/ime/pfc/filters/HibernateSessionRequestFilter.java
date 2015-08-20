@@ -23,6 +23,7 @@
  */
 package br.eb.ime.pfc.filters;
 
+import br.eb.ime.pfc.hibernate.HibernateUtil;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -34,13 +35,16 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.context.internal.ManagedSessionContext;
 
 /**
  *
  * @author arthurfernandes
  */
-@WebFilter(filterName = "WMSLayerFilter", urlPatterns = {"/wms"})
-public class WMSLayerFilter implements Filter {
+@WebFilter(filterName = "TransactionHandlerFilter", servletNames={"LoginServlet","ListLayersServlet","MapServlet"})
+public class HibernateSessionRequestFilter implements Filter {
     
     private static final boolean debug = true;
 
@@ -48,61 +52,33 @@ public class WMSLayerFilter implements Filter {
     // this value is null, this filter instance is not currently
     // configured. 
     private FilterConfig filterConfig = null;
+    private Session session = null;
     
-    public WMSLayerFilter() {
+    public HibernateSessionRequestFilter() {
     }    
     
     private void doBeforeProcessing(ServletRequest request, ServletResponse response)
             throws IOException, ServletException {
         if (debug) {
-            log("WMSLayerFilter:DoBeforeProcessing");
+            log("TransactionHandlerFilter:DoBeforeProcessing");
         }
 
-	// Write code here to process the request and/or response before
-        // the rest of the filter chain is invoked.
-	// For example, a logging filter might log items on the request object,
-        // such as the parameters.
-	/*
-         for (Enumeration en = request.getParameterNames(); en.hasMoreElements(); ) {
-         String name = (String)en.nextElement();
-         String values[] = request.getParameterValues(name);
-         int n = values.length;
-         StringBuffer buf = new StringBuffer();
-         buf.append(name);
-         buf.append("=");
-         for(int i=0; i < n; i++) {
-         buf.append(values[i]);
-         if (i < n-1)
-         buf.append(",");
-         }
-         log(buf.toString());
-         }
-         */
+        
+	SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        this.session = sessionFactory.openSession();
+        this.session.beginTransaction();
+        ManagedSessionContext.bind(session);
     }    
     
     private void doAfterProcessing(ServletRequest request, ServletResponse response)
             throws IOException, ServletException {
         if (debug) {
-            log("WMSLayerFilter:DoAfterProcessing");
+            log("TransactionHandlerFilter:DoAfterProcessing");
         }
-
-	// Write code here to process the request and/or response after
-        // the rest of the filter chain is invoked.
-	// For example, a logging filter might log the attributes on the
-        // request object after the request has been processed. 
-	/*
-         for (Enumeration en = request.getAttributeNames(); en.hasMoreElements(); ) {
-         String name = (String)en.nextElement();
-         Object value = request.getAttribute(name);
-         log("attribute: " + name + "=" + value.toString());
-
-         }
-         */
-	// For example, a filter might append something to the response.
-	/*
-         PrintWriter respOut = new PrintWriter(response.getWriter());
-         respOut.println("<P><B>This has been appended by an intrusive filter.</B>");
-         */
+        ManagedSessionContext.unbind(this.session.getSessionFactory());
+        this.session.flush();
+        this.session.getTransaction().commit();
+        this.session.close();
     }
 
     /**
@@ -119,7 +95,7 @@ public class WMSLayerFilter implements Filter {
             throws IOException, ServletException {
         
         if (debug) {
-            log("WMSLayerFilter:doFilter()");
+            log("TransactionHandlerFilter:doFilter()");
         }
         
         doBeforeProcessing(request, response);
@@ -179,7 +155,7 @@ public class WMSLayerFilter implements Filter {
         this.filterConfig = filterConfig;
         if (filterConfig != null) {
             if (debug) {                
-                log("WMSLayerFilter:Initializing filter");
+                log("TransactionHandlerFilter:Initializing filter");
             }
         }
     }
@@ -190,9 +166,9 @@ public class WMSLayerFilter implements Filter {
     @Override
     public String toString() {
         if (filterConfig == null) {
-            return ("WMSLayerFilter()");
+            return ("TransactionHandlerFilter()");
         }
-        StringBuffer sb = new StringBuffer("WMSLayerFilter(");
+        StringBuffer sb = new StringBuffer("TransactionHandlerFilter(");
         sb.append(filterConfig);
         sb.append(")");
         return (sb.toString());

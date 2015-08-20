@@ -1,6 +1,7 @@
 package br.eb.ime.pfc.domain;
 
-import org.hibernate.SessionFactory;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
 
 /*
  * The MIT License
@@ -30,24 +31,24 @@ import org.hibernate.SessionFactory;
  *
  */
 public class UserManager {
-    private final SessionFactory sessionFactory;
-    public UserManager(SessionFactory sessionFactory){
-        this.sessionFactory = sessionFactory;
+    private final Session session;
+    public UserManager(Session session){
+        this.session = session;
     }
     
-    public void create(User user){
-        this.sessionFactory.getCurrentSession().save(user);
+    public void create(User user) throws HibernateException{
+        this.session.save(user);
     }
     
-    public User getUserByUsername(String username){
-        return (User) this.sessionFactory.getCurrentSession().get(AccessLevel.class, username);
+    public User getUserByUsername(String username) throws HibernateException{
+        return (User) this.session.get(User.class, username);
     }
     
-    public void update(User user){
-        this.sessionFactory.getCurrentSession().update(user);
+    public void update(User user) throws HibernateException{
+        this.session.update(user);
     }
     
-    public void delete(User user){
-        this.sessionFactory.getCurrentSession().delete(user);
+    public void delete(User user) throws HibernateException{
+        this.session.delete(user);
     }
 }

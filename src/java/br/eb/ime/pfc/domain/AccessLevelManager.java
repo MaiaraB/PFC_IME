@@ -23,33 +23,35 @@
  */
 package br.eb.ime.pfc.domain;
 
-import org.hibernate.SessionFactory;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
 
 /**
  *
  * @author arthurfernandes
  */
 public class AccessLevelManager {
-    private final SessionFactory sessionFactory;
+    private final Session session;
     
-    public AccessLevelManager(SessionFactory sessionFactory){
-        this.sessionFactory = sessionFactory;
+    public AccessLevelManager(Session session){
+        this.session = session;
+        assert this.session!=null;
     }
     
-    public void create(AccessLevel accessLevel){
-        this.sessionFactory.getCurrentSession().save(accessLevel);
+    public void create(AccessLevel accessLevel) throws HibernateException{
+        this.session.save(accessLevel);
     }
     
-    public AccessLevel getAccessLevel(String name){
-        return (AccessLevel) this.sessionFactory.getCurrentSession().get(AccessLevel.class, name);
+    public AccessLevel getAccessLevel(String name) throws HibernateException{
+        return (AccessLevel) this.session.get(AccessLevel.class, name);
     }
     
-    public void update(AccessLevel accessLevel){
-        this.sessionFactory.getCurrentSession().update(accessLevel);
+    public void update(AccessLevel accessLevel) throws HibernateException{
+        this.session.update(accessLevel);
     }
     
-    public void delete(AccessLevel accessLevel){
-        this.sessionFactory.getCurrentSession().delete(accessLevel);
+    public void delete(AccessLevel accessLevel) throws HibernateException{
+        this.session.delete(accessLevel);
     }
     
 }

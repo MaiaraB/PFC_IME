@@ -37,7 +37,7 @@
                         <ul class="nav navbar-nav navbar-right">
                             <li><a href="#">Ajuda</a></li>
                             <li class="divider"></li>
-                            <li><a href="#">Sair</a></li>
+                            <li><a href="${pageContext.request.contextPath}/logout">Sair</a></li>
                         </ul>
                     </div><!-- /.navbar-collapse -->
                 </div><!-- /.container-fluid -->
@@ -83,7 +83,7 @@
                                 <div id="ol" class="sublinks collapse">
                                 <c:forEach var="camada" items="${camadas}" varStatus="status">
                                     <a onclick="showLayer(this,${status.index})" class="list-group-item small clickable">
-                                        <i class="glyphicon-plus"></i> <span class="text-danger">${camada.nome}</span>
+                                        <i class="glyphicon-plus"></i> <span class="text-danger">${camada.name}</span>
                                     </a>
                                 </c:forEach>
                                 </div>

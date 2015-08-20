@@ -50,7 +50,7 @@ public class MapServlet extends HttpServlet {
         camadas.add(new Layer("Paradas de Trem","paradas_trens"));
         request.setAttribute("camadas", camadas);
         request.setAttribute("nome_bairro","nm_bairro");
-        request.getRequestDispatcher("/WEB-INF/jsp/mapa.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/jsp/map.jsp").forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

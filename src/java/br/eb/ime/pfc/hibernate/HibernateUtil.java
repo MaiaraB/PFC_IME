@@ -27,6 +27,7 @@ import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.Feature;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.SessionFactory;
@@ -34,27 +35,41 @@ import org.hibernate.SessionFactory;
 /**
  * Hibernate Utility class with a convenient method to get Session Factory
  * object.
- *
- * @author arthurfernandes
  */
 public class HibernateUtil {
 
     private static final SessionFactory sessionFactory;
     
     static {
+        SessionFactory sf = null;
         try {
             // Create the SessionFactory from standard (hibernate.cfg.xml) 
-            // config file.
-            sessionFactory = new AnnotationConfiguration().configure("/br/eb/ime/pfc/hibernate/hibernate.cfg.xml").buildSessionFactory();
+            final String hibernateConfigurationFilePath = "/br/eb/ime/pfc/hibernate/hibernate.cfg.xml";
+            sf = new AnnotationConfiguration().configure(hibernateConfigurationFilePath).buildSessionFactory();
         } catch (Throwable ex) {
-            // Log the exception. 
-            System.out.println("Initial SessionFactory creation failed." + ex);
-            throw new ExceptionInInitializerError(ex);
+        }
+        finally{
+            sessionFactory = sf;
         }
     }
     
-    public static SessionFactory getSessionFactory() {
-        return sessionFactory;
+    public static SessionFactory getSessionFactory() throws HibernateException{
+        if(sessionFactory != null){
+            return sessionFactory;
+        }
+        else{
+            throw new HibernateException("Could not initialize Hibernate.");
+        }
+    }
+    
+    public static Session getCurrentSession() throws HibernateException{
+        if(sessionFactory != null){
+            //Throws HibernateException if there is no Session open.
+            return sessionFactory.getCurrentSession();
+        }
+        else{
+            throw new HibernateException("Could not initialize Hibernate");
+        }
     }
     
     public static void main(String args[]){

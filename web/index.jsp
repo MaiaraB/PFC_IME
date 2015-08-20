@@ -5,6 +5,7 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
     <head>
@@ -31,17 +32,17 @@
                         <div class="panel-heading"> <strong class=""><h2>PFC IME</h2></strong>
                         </div>
                         <div class="panel-body">
-                            <form class="form-horizontal" role="form" action="mapa">
+                            <form class="form-horizontal" role="form" action="login" method="POST">
                                 <div class="form-group">
                                     <label for="inputEmail3" class="col-sm-3 control-label">Usuário</label>
                                     <div class="col-sm-9">
-                                        <input class="form-control" id="inputEmail3" placeholder="usuario">
+                                        <input class="form-control" name="username" placeholder="usuario">
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="inputPassword3" class="col-sm-3 control-label">Senha</label>
                                     <div class="col-sm-9">
-                                        <input type="password" class="form-control" id="inputPassword3" placeholder="senha">
+                                        <input type="password" class="form-control" name="password" placeholder="senha">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -56,6 +57,11 @@
                                     <div class="col-sm-offset-3 col-sm-9">
                                         <button type="submit" class="btn btn-success col-xs-12">Entrar</button>
                                     </div>
+                                </div>
+                                <div class="col-sm-offset-3 col-sm-9">
+                                    <c:if test="${authentication_failure}">
+                                        <span role="alert" class="text-danger">Usuário ou senha incorretos.</span>
+                                    </c:if>
                                 </div>
                             </form>
                         </div>
