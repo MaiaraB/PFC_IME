@@ -15,7 +15,7 @@
         <%@include file="/WEB-INF/jspf/default_includes.jspf" %>
         
     </head>
-    <body onload="showBaseLayer('Road')">
+    <body onload="mapControl.getLayersFromServer()">
         <div class="container">
             <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
                 <div class="container-fluid">
@@ -67,13 +67,13 @@
                                     <i class="fa fa-list-alt"> Camadas Base</i>
                                 </a>
                                 <div id="bl" class="sublinks collapse">
-                                    <a onclick="showBaseLayer('Aerial')" class="list-group-item small clickable">
+                                    <a onclick="mapControl.showBaseLayer('Aerial')" class="list-group-item small clickable">
                                         <i class="fa fa-globe" ></i> <span>Satélite</span>
                                     </a>
-                                    <a onclick="showBaseLayer('Road')" class="list-group-item small clickable">
+                                    <a onclick="mapControl.showBaseLayer('Road')" class="list-group-item small clickable">
                                         <i class="fa fa-globe"></i> <span>Ruas</span>
                                     </a>
-                                    <a onclick="showBaseLayer('AerialWithLabels')" class="list-group-item small clickable">
+                                    <a onclick="mapControl.showBaseLayer('AerialWithLabels')" class="list-group-item small clickable">
                                         <i class="fa fa-globe"></i> <span>Satélite + Ruas</span>
                                     </a>
                                 </div>
@@ -82,7 +82,7 @@
                                 </a>
                                 <div id="ol" class="sublinks collapse">
                                 <c:forEach var="layer" items="${layers}" varStatus="status">
-                                    <a onclick="showLayer(this,${status.index})" class="list-group-item small clickable">
+                                    <a onclick="mapControl.showLayer(this,${status.index})" class="list-group-item small clickable">
                                         <i class="glyphicon-plus"></i> <span class="text-danger">${layer.name}</span>
                                     </a>
                                 </c:forEach>
@@ -98,7 +98,8 @@
         </div>
         <div id="popup" class="">
         </div>
-        <%@include file="/WEB-INF/jspf/wms_openlayers.jspf" %>
+        <!--%@include file="/WEB-INF/jspf/wms_openlayers.jspf" %-->
+        <script src="${pageContext.request.contextPath}/resources/js/mapcontrol.js"></script>
     </body>
 </html>
 

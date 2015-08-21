@@ -23,18 +23,14 @@
  */
 package br.eb.ime.pfc.controllers;
 
-import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
-import br.eb.ime.pfc.hibernate.HibernateUtil;
+import flexjson.JSONSerializer;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.hibernate.Session;
 
 /**
  *
@@ -54,7 +50,16 @@ public class ListLayersServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+        final User user = (User) request.getSession().getAttribute("user");
+        if(user != null){
+            JSONSerializer serializer = new JSONSerializer();
+            serializer.rootName("layers").
+                    include("features").exclude("features.layer").exclude("class").
+                    serialize(user.getAccessLevel().getLayers(),response.getWriter());
+        }
+        else{
+            response.sendError(404);
+        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
