@@ -5,7 +5,10 @@ var mapControl = {
     targetMapDivId : 'map',
     baseLayerStyles : ['Road','Aerial','AerialWithLabels'],
     layerJSONURL : 'layers',
-    layerWMSURL : 'wms'
+    layerWMSURL : 'wms',
+    layers : [],
+    baseLayers : [],
+    olLayers : []
 };
 
 /*METHODS*/
@@ -16,6 +19,7 @@ mapControl.loadWMSService = function (layers){
     this.addBaseLayers();
     this.addLayers(this.layers);
     this.showBaseLayer("Aerial");
+    this.configurePopup();
 };
 
 mapControl.createMap = function(){
@@ -42,7 +46,6 @@ mapControl.getLayersFromServer = function(){
 };
 
 mapControl.addBaseLayers = function(){
-    this.baseLayers = [];
     var i, ii;
     for (i = 0, ii = this.baseLayerStyles.length; i < ii; ++i) {
         var baseLayer = (new ol.layer.Tile({
@@ -61,7 +64,6 @@ mapControl.addBaseLayers = function(){
 };
 
 mapControl.addLayers = function(layers){
-    this.olLayers = this.olLayers || [];
     var i,ii;
     for(i = 0, ii = layers.length;i<ii;i++){
         var layer = layers[i];
@@ -78,6 +80,7 @@ mapControl.addLayers = function(layers){
             })),
             opacity : layer.opacity
         });
+        olLayer.layerObj = layer;
         this.olLayers.push(olLayer);
         this.map.addLayer(olLayer);
     }
@@ -105,3 +108,71 @@ mapControl.showBaseLayer = function (baselayer){
       this.baseLayers[i].setVisible(this.baseLayerStyles[i] === baselayer);
     }
 };
+
+mapControl.configurePopup = function(){
+    var container = document.getElementById('popup');
+    var content = document.getElementById('popup-content');
+    var closer = document.getElementById('popup-closer');
+
+
+    /**
+     * Add a click handler to hide the popup.
+     * @return {boolean} Don't follow the href.
+     */
+    closer.onclick = function() {
+      overlay.setPosition(undefined);
+      closer.blur();
+      return false;
+    };
+
+    /**
+     * Create an overlay to anchor the popup to the map.
+     */
+    var overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
+      element: container,
+      autoPan: true,
+      autoPanAnimation: {
+        duration: 250
+      }
+    }));
+
+    this.map.addOverlay(overlay);
+    /**
+    * Add a click handler to the map to render the popup.
+    */
+    var self = this;
+    this.map.on('singleclick', function(evt) {
+        var coordinate = evt.coordinate;
+        overlay.setPosition(coordinate);
+        var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
+        coordinate, 'EPSG:3857', 'EPSG:4326'));
+        content.innerHTML = "<div><img src='resources/img/loading_small.gif' width='42' height='42'></div>";
+        self.getFeatureInfo(evt,content);
+    });
+};
+
+mapControl.getFeatureInfo = function(evt,content){
+    var view = this.map.getView();
+    var viewResolution = view.getResolution();
+    var viewProjection = view.getProjection();
+    var i,ii;
+    for(i = 0,ii = this.olLayers.length;i<ii;i++){
+        if(this.olLayers[i].getVisible()){
+            var source = this.olLayers[i].getSource();
+            var url = source.getGetFeatureInfoUrl(
+              evt.coordinate, viewResolution, viewProjection,
+              {'INFO_FORMAT': 'application/json', 'FEATURE_COUNT': 50});
+              
+            if (url) {
+                var olLayer = this.olLayers[i];
+                $.getJSON(url,function(data){
+                    var features = olLayer.layerObj.features;
+                    var j,jj;
+                    for(j = 0,jj = features.length;j<jj;j++){
+                        content.innerHTML = "<p>"+features[j].name+" : " + data.features[0].properties[features[j].wmsId] + "</p>";
+                    }
+                });
+            }
+        }
+    }
+}

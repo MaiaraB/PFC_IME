@@ -14,7 +14,7 @@
 <link rel='stylesheet' href='${pageContext.request.contextPath}/resources/css/ol3js.org_en_master_css_ol.css'>   
 
 <!--Main Page Styles-->
-<link rel="stylesheet" href='${pageContext.request.contextPath}/resources/css/main.css'>
+<link rel="stylesheet" href='${pageContext.request.contextPath}/resources/css/mappage.css'>
 
 <!--Side Bar that exhibits Layers-->
 <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/side_bar.css">

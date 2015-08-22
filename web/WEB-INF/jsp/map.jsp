@@ -45,6 +45,10 @@
         </div>
         <div class="navbar-offset"></div>
         <div id="map">
+            <div id="popup" class="ol-popup">
+                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                <div id="popup-content"></div>
+            </div>
         </div>
         <div class="row main-row ">
             <div class="col-sm-4 col-md-3 sidebar sidebar-left pull-left">

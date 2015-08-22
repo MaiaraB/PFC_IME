@@ -54,7 +54,7 @@ public class ListLayersServlet extends HttpServlet {
         if(user != null){
             JSONSerializer serializer = new JSONSerializer();
             serializer.rootName("layers").
-                    include("features").exclude("features.layer").exclude("class").
+                    include("features").exclude("features.layer").exclude("*.class").
                     serialize(user.getAccessLevel().getLayers(),response.getWriter());
         }
         else{

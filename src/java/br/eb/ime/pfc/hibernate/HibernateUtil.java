@@ -24,6 +24,7 @@
 package br.eb.ime.pfc.hibernate;
 
 import br.eb.ime.pfc.domain.AccessLevel;
+import br.eb.ime.pfc.domain.Feature;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
 import org.hibernate.HibernateException;
@@ -132,8 +133,10 @@ public class HibernateUtil {
         estrategico.addLayer(metro);
         estrategico.addLayer(onibus);
         estrategico.addLayer(trem);
-        
+        //ADD FEATURES TO LAYERS
+        bairros.addFeature(new Feature("Bairro","nm_bairro",bairros));
         //SAVE LAYERS
+        
         session.save(bairros);
         session.save(locaisDeInteresse);
         session.save(atracoes);

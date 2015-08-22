@@ -15,9 +15,9 @@
         <meta name="description" content="">
         <meta name="author" content="">
         
-        <link rel="stylesheet" href="resources/css/maxcdn.bootstrapcdn.com_bootstrap_3.3.5_css_bootstrap.min.css">
-        <link rel="stylesheet" href="resources/css/font-awesome-4.4.0/css/font-awesome.min.css">
-        <link rel="stylesheet" href="resources/css/indexpage.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/maxcdn.bootstrapcdn.com_bootstrap_3.3.5_css_bootstrap.min.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/font-awesome-4.4.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/indexpage.css">
         
     </head>
     <body>
@@ -68,8 +68,8 @@
                 </div>
             </div>
         </div>
-        <script src="resources/js/code.jquery.com_jquery-2.1.4.min.js"></script>
-        <script src="resources/js/maxcdn.bootstrapcdn.com_bootstrap_3.3.5_js_bootstrap.min.js"></script>
+        <script src="${pageContext.request.contextPath}/resources/js/code.jquery.com_jquery-2.1.4.min.js"></script>
+        <script src="${pageContext.request.contextPath}/resources/js/maxcdn.bootstrapcdn.com_bootstrap_3.3.5_js_bootstrap.min.js"></script>
     </body>
 </html>
 

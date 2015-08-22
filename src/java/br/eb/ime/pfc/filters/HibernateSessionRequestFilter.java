@@ -35,6 +35,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.context.internal.ManagedSessionContext;
@@ -76,8 +77,15 @@ public class HibernateSessionRequestFilter implements Filter {
         }
         ManagedSessionContext.unbind(this.session.getSessionFactory());
         this.session.flush();
-        this.session.getTransaction().commit();
-        this.session.close();
+        try{
+            this.session.getTransaction().commit();
+        }
+        catch(HibernateException e){
+            this.session.getTransaction().rollback();
+        }
+        finally{
+            this.session.close();
+        }
     }
 
     /**
@@ -89,6 +97,7 @@ public class HibernateSessionRequestFilter implements Filter {
      * @exception IOException if an input/output error occurs
      * @exception ServletException if a servlet error occurs
      */
+    @Override
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain)
             throws IOException, ServletException {
@@ -126,30 +135,16 @@ public class HibernateSessionRequestFilter implements Filter {
     }
 
     /**
-     * Return the filter configuration object for this filter.
-     */
-    public FilterConfig getFilterConfig() {
-        return (this.filterConfig);
-    }
-
-    /**
-     * Set the filter configuration object for this filter.
-     *
-     * @param filterConfig The filter configuration object
-     */
-    public void setFilterConfig(FilterConfig filterConfig) {
-        this.filterConfig = filterConfig;
-    }
-
-    /**
      * Destroy method for this filter
      */
+    @Override
     public void destroy() {        
     }
 
     /**
      * Init method for this filter
      */
+    @Override
     public void init(FilterConfig filterConfig) {        
         this.filterConfig = filterConfig;
         if (filterConfig != null) {
@@ -167,7 +162,7 @@ public class HibernateSessionRequestFilter implements Filter {
         if (filterConfig == null) {
             return ("TransactionHandlerFilter()");
         }
-        StringBuffer sb = new StringBuffer("TransactionHandlerFilter(");
+        StringBuilder sb = new StringBuilder("TransactionHandlerFilter(");
         sb.append(filterConfig);
         sb.append(")");
         return (sb.toString());
