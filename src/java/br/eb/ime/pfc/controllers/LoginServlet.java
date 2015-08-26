@@ -94,7 +94,7 @@ public class LoginServlet extends HttpServlet {
             //User Validation
             if(user!= null && password.equals(user.getPassword())){
                 Hibernate.initialize(user);
-                request.getSession().setAttribute("user", user);
+                request.getSession().setAttribute("user",user);
                 response.sendRedirect(request.getContextPath()+"/map");
             }
             else{

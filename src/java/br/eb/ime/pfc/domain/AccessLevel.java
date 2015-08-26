@@ -36,7 +36,7 @@ public class AccessLevel implements Serializable{
     @Column(name = "ACCESSLEVEL_ID")
     private final String name;
     
-    @ManyToMany(fetch=FetchType.LAZY,cascade = CascadeType.ALL)
+    @ManyToMany(fetch=FetchType.EAGER,cascade = CascadeType.ALL)
     @JoinTable(name = "LAYER_ACCESSLEVEL",
                 joinColumns = {@JoinColumn(name="ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")},
                 inverseJoinColumns = {@JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID")}

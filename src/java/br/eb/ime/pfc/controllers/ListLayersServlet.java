@@ -61,7 +61,7 @@ public class ListLayersServlet extends HttpServlet {
         final User user = manager.getUserByUsername(userl.getUsername());
         if(user != null){
             List<Layer> layers = user.getAccessLevel().getLayers();
-            Hibernate.initialize(user);
+            Hibernate.initialize(userl);
             /*for(Layer layer : layers){
                 layer.getFeatures().size();
             }*/
