@@ -5,12 +5,12 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -39,9 +39,10 @@ public class Layer implements Serializable {
     @Column(name="STYLE") private String style;
     @Column(name="OPACITY") private double opacity;
     
-    @OneToMany(mappedBy = "layer",targetEntity=Feature.class,fetch=FetchType.EAGER,cascade =CascadeType.ALL)
+    //@OneToMany(mappedBy = "layer",targetEntity=Feature.class,fetch=FetchType.EAGER,cascade =CascadeType.ALL)
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name="features")
     private final List<Feature> features;
-    
     
     /*
     * Representation Invariant:

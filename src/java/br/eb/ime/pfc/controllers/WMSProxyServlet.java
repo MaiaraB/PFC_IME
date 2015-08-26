@@ -14,6 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -58,7 +59,15 @@ public class WMSProxyServlet extends HttpServlet {
             return false;
         }
         else{
-            final String layerParam = request.getParameter("LAYERS");
+            String layerParam = null;
+            final Enumeration<String> requestParams = request.getParameterNames();
+            for(;requestParams.hasMoreElements();){
+                String param = requestParams.nextElement();
+                if(param.equalsIgnoreCase("LAYERS")){
+                    layerParam = request.getParameter(param);
+                }
+            }
+            
             if(layerParam == null){
                 return false;
             }
@@ -73,10 +82,6 @@ public class WMSProxyServlet extends HttpServlet {
             final AccessLevel accessLevel = user.getAccessLevel();
             for(String layerWmsId : layerWmsIds){
                 if(!accessLevel.hasAccessToLayer(layerWmsId)){
-                    
-                    request.getServletContext().log("LAYERID:"+layerWmsId+","+accessLevel.getLayers().get(0).getWmsId()+
-                            ","+accessLevel.hasAccessToLayer("rio2016:bairro_part")+","+
-                            accessLevel.getLayers().get(0).getWmsId().equals("rio2016:bairro_part"));
                     return false;
                 }
             }

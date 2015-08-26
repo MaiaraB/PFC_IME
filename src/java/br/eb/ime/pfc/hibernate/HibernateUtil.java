@@ -134,7 +134,15 @@ public class HibernateUtil {
         estrategico.addLayer(onibus);
         estrategico.addLayer(trem);
         //ADD FEATURES TO LAYERS
-        bairros.addFeature(new Feature("Bairro","nm_bairro",bairros));
+        bairros.addFeature(new Feature("Bairro","nm_bairro"));
+        hoteis.addFeature(new Feature("Nome","nome"));
+        hoteis.addFeature(new Feature("Endereço","endereco"));
+        hoteis.addFeature(new Feature("Bairro","bairro"));
+        hoteis.addFeature(new Feature("Telefone","telefone"));
+        hoteis.addFeature(new Feature("Fax","fax"));
+        hoteis.addFeature(new Feature("Categoria","categoria"));
+        hoteis.addFeature(new Feature("Email","email"));
+        hoteis.addFeature(new Feature("Idiomas","idiomas"));
         //SAVE LAYERS
         
         session.save(bairros);

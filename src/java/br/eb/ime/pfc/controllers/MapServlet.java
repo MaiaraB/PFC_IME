@@ -39,9 +39,9 @@ public class MapServlet extends HttpServlet {
         if(user == null){
             response.sendRedirect(request.getContextPath());
         }
-        
         final AccessLevel accessLevel = user.getAccessLevel();
         final List<Layer> layers = accessLevel.getLayers();
+        request.getServletContext().log("LAYERS:"+layers.size());
         request.setAttribute("username", user.getUsername());
         request.setAttribute("accessLevelName", accessLevel.getName());
         request.setAttribute("layers", layers);

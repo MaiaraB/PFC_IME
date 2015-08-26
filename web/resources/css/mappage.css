@@ -23,16 +23,20 @@ and open the template in the editor.
     border: 1px solid #cccccc;
     bottom: 12px;
     left: -50px;
+}
+
+.ol-popup-content{
     min-width: 100px;
-    max-width : 70%;
-    max-height : 70%;
+    min-height: 60px;
+    overflow : scroll;
 }
 
 .ol-popup:after, .ol-popup:before {
     top: 100%;
     border: solid transparent;
     content: " ";
-    
+}
+
 .ol-popup:after {
     border-top-color: white;
     border-width: 10px;
@@ -44,11 +48,12 @@ and open the template in the editor.
     border-width: 11px;
     left: 48px;
     margin-left: -11px;
-}height: 0;
+    height: 0;
     width: 0;
     position: absolute;
     pointer-events: none;
 }
+
 .ol-popup:after {
     border-top-color: white;
     border-width: 10px;

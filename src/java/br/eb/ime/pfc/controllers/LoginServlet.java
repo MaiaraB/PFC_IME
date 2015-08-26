@@ -32,6 +32,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
@@ -92,6 +93,7 @@ public class LoginServlet extends HttpServlet {
             
             //User Validation
             if(user!= null && password.equals(user.getPassword())){
+                Hibernate.initialize(user);
                 request.getSession().setAttribute("user", user);
                 response.sendRedirect(request.getContextPath()+"/map");
             }

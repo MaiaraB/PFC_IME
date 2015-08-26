@@ -23,14 +23,19 @@
  */
 package br.eb.ime.pfc.controllers;
 
+import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
+import br.eb.ime.pfc.domain.UserManager;
+import br.eb.ime.pfc.hibernate.HibernateUtil;
 import flexjson.JSONSerializer;
 import java.io.IOException;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hibernate.Hibernate;
 
 /**
  *
@@ -50,12 +55,20 @@ public class ListLayersServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        final User user = (User) request.getSession().getAttribute("user");
+        final User userl = (User) request.getSession().getAttribute("user");
+        //request.getServletContext().log("FEATURESSIZE:"+userl.getAccessLevel().getLayers().get(0).getFeatures().size());
+        final UserManager manager = new UserManager(HibernateUtil.getCurrentSession());
+        final User user = manager.getUserByUsername(userl.getUsername());
         if(user != null){
+            List<Layer> layers = user.getAccessLevel().getLayers();
+            Hibernate.initialize(user);
+            /*for(Layer layer : layers){
+                layer.getFeatures().size();
+            }*/
             JSONSerializer serializer = new JSONSerializer();
             serializer.rootName("layers").
-                    include("features").exclude("features.layer").exclude("*.class").
-                    serialize(user.getAccessLevel().getLayers(),response.getWriter());
+                    include("features").
+                    exclude("*.class").serialize(layers,response.getWriter());
         }
         else{
             response.sendError(404);

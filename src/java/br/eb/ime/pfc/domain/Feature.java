@@ -2,7 +2,7 @@ package br.eb.ime.pfc.domain;
 
 import java.io.Serializable;
 import javax.persistence.Column;
-import javax.persistence.Entity;
+import javax.persistence.Embeddable;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -16,19 +16,19 @@ import javax.persistence.Table;
  * by GetFeatureInfo requests is stored.
  * 
  */
-@Entity
-@Table(name = "features")
+@Embeddable
+//@Table(name = "features")
 public class Feature implements Serializable{
     
     private static final long serialVersionUID = 1L;
     
     @Column(name="NAME") private final String name;
-    @Id @Column(name="FEATURE_ID") private final String wmsId;
+    @Column(name="FEATURE_ID") private final String wmsId;
     
-    @Id
-    @ManyToOne(optional = false)
-    @JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID")
-    private final Layer layer;
+    //@Id
+    //@ManyToOne(optional = false)
+    //@JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID")
+    //private final Layer layer;
     /*
      * Representation invariant:
      * wmsId must not be empty String
@@ -43,17 +43,15 @@ public class Feature implements Serializable{
      * A String that identifies this feature in the WMS service.
      * @param layer
      */
-    public Feature(String name,String wmsId,Layer layer){
+    public Feature(String name,String wmsId){
         this.name = name;
         this.wmsId = wmsId;
-        this.layer = layer;
         checkRep();
     }
     
     protected Feature(){
         this.name = null;
         this.wmsId = null;
-        this.layer = null;
     }
     
     /**
@@ -78,9 +76,5 @@ public class Feature implements Serializable{
      */
     public String getWmsId(){
         return this.wmsId;
-    }
-    
-    public Layer getLayer(){
-        return this.layer;
     }
 }
