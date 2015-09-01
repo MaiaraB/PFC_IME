@@ -11,14 +11,20 @@ var mapControl = {
     olLayers : []
 };
 
+/*Initialize onLoad*/
+$(document).ready(function(){
+   mapControl.getLayersFromServer();
+});
+    
 /*METHODS*/
 
 mapControl.loadWMSService = function (layers){
     this.layers = layers;
     this.map = this.map || this.createMap();
     this.addBaseLayers();
-    this.addLayers(this.layers);
     this.showBaseLayer("Aerial");
+    this.addLayers(this.layers);
+    this.configureLayerBar();
     this.configurePopup();
 };
 
@@ -42,7 +48,7 @@ mapControl.getLayersFromServer = function(){
     var self = this;
     $.getJSON(url,function(data){
         self.loadWMSService(data.layers);
-    });
+    }).error(function(){alert("ERROR");});
 };
 
 mapControl.addBaseLayers = function(){
@@ -86,7 +92,24 @@ mapControl.addLayers = function(layers){
     }
 };
 
+mapControl.configureLayerBar = function(){
+    var obj = $("#layers #ol");
+    var i = 0,ii=0;
+    var self = this;
+    if(obj !== undefined){
+        obj.empty();
+        for(i = 0,ii = this.layers.length;i<ii;i++){
+            var item = $("<a></a>").addClass("list-group-item small clickable").
+                append($("<i></i>").addClass("glyphicon-plus")).
+                append($("<span></span>").addClass("text-danger").html(this.layers[i].name));
+            item.attr("onclick","mapControl.showLayer(this,"+i+")");
+            obj.append(item);
+        }
+    }
+};
+
 mapControl.showLayer = function (element,i) {
+    console.log(i);
     if(this.olLayers[i].getVisible()) {
         this.olLayers[i].setVisible(false);
         //otherLayers[i].setMap(null);

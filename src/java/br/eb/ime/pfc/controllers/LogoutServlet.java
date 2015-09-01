@@ -32,7 +32,9 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author arthurfernandes
+ * This class is a Controller responsible for logging out an user of this system.
+ * 
+ * When an user logs out he won't be able to access protected resources of this application.
  */
 @WebServlet(name = "LogoutServlet", urlPatterns = {"/logout"})
 public class LogoutServlet extends HttpServlet {
@@ -48,14 +50,13 @@ public class LogoutServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //request.getSession().setAttribute("user", null);
+        request.getSession().setAttribute("user", null); //Set user attribute to null
         try{
-            request.getSession().invalidate();
+            request.getSession().invalidate(); //Invalidate current session
         }
         catch(IllegalStateException e){
             
         }
-        
         response.sendRedirect(request.getContextPath());
     }
 

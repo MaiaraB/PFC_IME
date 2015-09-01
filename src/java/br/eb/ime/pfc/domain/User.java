@@ -19,16 +19,14 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "users")
-public class User implements Serializable{
+public class User implements Serializable,Cloneable{
     
     private static final long serialVersionUID = 1L;
     
     @Id
-    @Column(name = "USER_ID")
-    private final String username;
+    @Column(name = "USER_ID") private final String username;
     
-    @Column(name = "PASSWORD")
-    private final String password;
+    @Column(name = "PASSWORD") private final String password;
     
     @ManyToOne(optional=false)
     @JoinColumn(name = "ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")
@@ -110,5 +108,12 @@ public class User implements Serializable{
     @Override
     public int hashCode() {
         return Objects.hash(this.username);
+    }
+    
+    @Override
+    public User clone(){
+        return new User(this.username,
+                        this.password,
+                        this.accessLevel.clone());
     }
 }

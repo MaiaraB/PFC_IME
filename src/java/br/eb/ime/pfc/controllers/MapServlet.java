@@ -10,17 +10,19 @@ import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.hibernate.Hibernate;
 
 /**
  *
- * @author arthurfernandes
+ * This class is a Controller responsible to show to the user the main page of this
+ * application that renders the map and its layers.
+ * The user must be signed in the system, otherwise he will be redirected to the 
+ * index page.
  */
 @WebServlet(name = "MapServlet", urlPatterns = {"/map"})
 public class MapServlet extends HttpServlet {
@@ -41,11 +43,8 @@ public class MapServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath());
         }
         final AccessLevel accessLevel = user.getAccessLevel();
-        final List<Layer> layers = accessLevel.getLayers();
-        request.getServletContext().log("LAYERS:"+layers.size());
         request.setAttribute("username", user.getUsername());
         request.setAttribute("accessLevelName", accessLevel.getName());
-        request.setAttribute("layers", layers);
         request.getRequestDispatcher("/WEB-INF/jsp/map.jsp").forward(request, response);
     }
 

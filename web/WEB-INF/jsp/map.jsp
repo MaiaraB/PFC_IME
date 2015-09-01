@@ -15,7 +15,7 @@
         <%@include file="/WEB-INF/jspf/default_includes.jspf" %>
         
     </head>
-    <body onload="mapControl.getLayersFromServer()">
+    <body>
         <div class="container">
             <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
                 <div class="container-fluid">
@@ -84,12 +84,12 @@
                                 <a href="#" class="list-group-item" data-toggle="collapse" data-target="#ol" data-parent="#menu">
                                     <i class="fa fa-list-alt"> Outras Camadas</i>
                                 </a>
-                                <div id="ol" class="sublinks collapse">
-                                <c:forEach var="layer" items="${layers}" varStatus="status">
-                                    <a onclick="mapControl.showLayer(this,${status.index})" class="list-group-item small clickable">
-                                        <i class="glyphicon-plus"></i> <span class="text-danger">${layer.name}</span>
+                                <div id="ol" class="sublinks collapse map-control-layers">
+                                <!--c:forEach var="layer" items="{layers}" varStatus="status">
+                                    <a onclick="mapControl.showLayer(this,{status.index})" class="list-group-item small clickable">
+                                        <i class="glyphicon-plus"></i> <span class="text-danger">{layer.name}</span>
                                     </a>
-                                </c:forEach>
+                                <!--/c:forEach-->
                                 </div>
                             </div>
                         </div>

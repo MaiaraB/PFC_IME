@@ -2,9 +2,10 @@ package br.eb.ime.pfc.domain;
 
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -42,7 +43,7 @@ public class Layer implements Serializable {
     //@OneToMany(mappedBy = "layer",targetEntity=Feature.class,fetch=FetchType.EAGER,cascade =CascadeType.ALL)
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name="features")
-    private final List<Feature> features;
+    private final Set<Feature> features;
     
     /*
     * Representation Invariant:
@@ -67,7 +68,7 @@ public class Layer implements Serializable {
         this.wmsId = wmsId;
         this.style = DEFAULT_STYLE;
         this.opacity = DEFAULT_OPACITY;
-        this.features = new LinkedList<>();
+        this.features = new LinkedHashSet<>();
     }
     
     protected Layer(){
@@ -75,7 +76,7 @@ public class Layer implements Serializable {
         this.wmsId = null;
         this.style = DEFAULT_STYLE;
         this.opacity = DEFAULT_OPACITY;
-        this.features = new LinkedList<>();
+        this.features = new LinkedHashSet<>();
     }
     
     /**
@@ -130,8 +131,8 @@ public class Layer implements Serializable {
      * @return features
      * 
      */
-    public List<Feature> getFeatures(){
-        return Collections.unmodifiableList(features);
+    public Collection<Feature> getFeatures(){
+        return Collections.unmodifiableSet(features);
     }
     
     //MUTATORS
@@ -168,6 +169,17 @@ public class Layer implements Serializable {
     
     public void setStyle(String style){
         this.style = style;
+    }
+    
+    @Override
+    public Layer clone(){
+        final Layer layerClone = new Layer(this.name,this.wmsId);
+        layerClone.opacity = this.opacity;
+        layerClone.style = this.style;
+        for(Feature feature : this.features){
+            layerClone.addFeature(feature.clone());
+        }
+        return layerClone;
     }
     
     /**

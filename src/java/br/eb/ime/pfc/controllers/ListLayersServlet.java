@@ -23,23 +23,23 @@
  */
 package br.eb.ime.pfc.controllers;
 
+import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
-import br.eb.ime.pfc.domain.UserManager;
-import br.eb.ime.pfc.hibernate.HibernateUtil;
 import flexjson.JSONSerializer;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.hibernate.Hibernate;
 
 /**
  *
- * @author arthurfernandes
+ * This class is responsible for listing the WMS layers accessed by the user and 
+ * its features as a JSON object.
+ * 
  */
 @WebServlet(name = "ListLayersServlet", urlPatterns = {"/layers"})
 public class ListLayersServlet extends HttpServlet {
@@ -55,23 +55,18 @@ public class ListLayersServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        final User userl = (User) request.getSession().getAttribute("user");
-        //request.getServletContext().log("FEATURESSIZE:"+userl.getAccessLevel().getLayers().get(0).getFeatures().size());
-        final UserManager manager = new UserManager(HibernateUtil.getCurrentSession());
-        final User user = manager.getUserByUsername(userl.getUsername());
+        final User user = (User) request.getSession().getAttribute("user");
         if(user != null){
-            List<Layer> layers = user.getAccessLevel().getLayers();
-            Hibernate.initialize(userl);
-            /*for(Layer layer : layers){
-                layer.getFeatures().size();
-            }*/
+            response.setContentType("application/json");
+            final AccessLevel accessLevel = user.getAccessLevel();
+            final Collection<Layer> layers = accessLevel.getLayers();
             JSONSerializer serializer = new JSONSerializer();
             serializer.rootName("layers").
                     include("features").
                     exclude("*.class").serialize(layers,response.getWriter());
         }
         else{
-            response.sendError(404);
+            response.sendError(403); //User has no permission to access the resource.
         }
     }
 

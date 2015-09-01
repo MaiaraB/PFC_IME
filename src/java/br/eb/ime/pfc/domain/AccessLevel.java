@@ -1,11 +1,10 @@
 package br.eb.ime.pfc.domain;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,7 +14,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 /**
  * Represents the Access Level of a User.
@@ -28,7 +26,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name = "access_levels")
-public class AccessLevel implements Serializable{
+public class AccessLevel implements Serializable,Cloneable{
     
     private static final long serialVersionUID = 1L;
     
@@ -41,10 +39,7 @@ public class AccessLevel implements Serializable{
                 joinColumns = {@JoinColumn(name="ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")},
                 inverseJoinColumns = {@JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID")}
     )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-    private final List<Layer> layers;
-    
-    @Transient
-    private final Map<String,Layer> mapLayers;
+    private final Set<Layer> layers;
     
     /*
     * Representation Invariant:
@@ -62,8 +57,7 @@ public class AccessLevel implements Serializable{
      */
     public AccessLevel(String name){
         this.name = name;
-        this.mapLayers = new HashMap<>();
-        this.layers = new LinkedList<>();
+        this.layers = new LinkedHashSet<>();
         checkRep();
     }
     
@@ -72,8 +66,7 @@ public class AccessLevel implements Serializable{
      */
     protected AccessLevel(){
         name = null;
-        this.mapLayers = new HashMap<>();
-        this.layers = new LinkedList<>();
+        this.layers = new LinkedHashSet<>();
     }
     
     /**
@@ -81,8 +74,6 @@ public class AccessLevel implements Serializable{
      */
     private void checkRep(){
         assert !this.name.equals("");
-        assert mapLayers.size() == layers.size();
-        assert layers.containsAll(mapLayers.values());
     }
     
     /**
@@ -99,8 +90,8 @@ public class AccessLevel implements Serializable{
      * Effects: layers is an unmodifiable list that specifies each layer in 
      * the order they were added to this Access Level.
      */
-    public List<Layer> getLayers(){
-        return Collections.unmodifiableList(layers);
+    public Collection<Layer> getLayers(){
+        return Collections.unmodifiableSet(layers);
     }
     
     /**
@@ -132,7 +123,6 @@ public class AccessLevel implements Serializable{
             throw new LayerRepetitionException("Cannot add Layer with the same wmsId of a Layer in use.");
         }
         this.layers.add(layer);
-        this.mapLayers.put(layer.getWmsId(), layer);
         
         checkRep();
     }
@@ -154,5 +144,14 @@ public class AccessLevel implements Serializable{
         public LayerRepetitionException(String message){
             super(message);
         }
+    }
+    
+    @Override
+    public AccessLevel clone(){
+        final AccessLevel accessLevelClone = new AccessLevel(this.name);
+        for(Layer layer : this.layers){
+            accessLevelClone.addLayer(layer.clone());
+        }
+        return accessLevelClone;
     }
 }

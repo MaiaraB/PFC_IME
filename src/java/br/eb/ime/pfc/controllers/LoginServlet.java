@@ -23,6 +23,7 @@
  */
 package br.eb.ime.pfc.controllers;
 
+import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
 import br.eb.ime.pfc.domain.UserManager;
 import br.eb.ime.pfc.hibernate.HibernateUtil;
@@ -38,7 +39,14 @@ import org.hibernate.Session;
 
 /**
  *
- * @author arthurfernandes
+ * This class is a Controller responsible for handling user log in.
+ * 
+ * This class handles only post requests containing the attributes 'username' and
+ * 'password'. If a get request is made a Http 403 code is sent to the client.
+ * If the user presents a valid username and password he will be redirected to the
+ * main application page with extension /map, otherwise he will be redirected to the
+ * same log in page.
+ * 
  */
 @WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
@@ -54,6 +62,7 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        response.sendError(403);
     }
     
     /**
@@ -78,12 +87,12 @@ public class LoginServlet extends HttpServlet {
             request.getRequestDispatcher("index.jsp").forward(request, response);
         }
         else{
-            Session session = HibernateUtil.getCurrentSession();
+            final Session session = HibernateUtil.getCurrentSession();
             //Create User Manager to Retrieve user
             final UserManager userManager = new UserManager(session);
             
             //If user isn't found it will be null
-            User user;
+            User user = null;
             try{
                 user = userManager.getUserByUsername(username);
             }
@@ -94,8 +103,13 @@ public class LoginServlet extends HttpServlet {
             //User Validation
             if(user!= null && password.equals(user.getPassword())){
                 Hibernate.initialize(user);
-                request.getSession().setAttribute("user",user);
+                for(Layer layer : user.getAccessLevel().getLayers()){
+                    request.getServletContext().log(layer.getName());
+                }
+                
+                request.getSession().setAttribute("user",user.clone());
                 response.sendRedirect(request.getContextPath()+"/map");
+                
             }
             else{
                 //Not valid Username or Password
@@ -105,11 +119,7 @@ public class LoginServlet extends HttpServlet {
         }
     }
     
-    private void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-        final String errorPagePath = request.getContextPath() +"/error.jsp";
-        request.getRequestDispatcher(errorPagePath).forward(request, response);
-    }
-
+    
     /**
      * Returns a short description of the servlet.
      *

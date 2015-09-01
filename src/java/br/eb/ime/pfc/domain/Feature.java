@@ -3,10 +3,6 @@ package br.eb.ime.pfc.domain;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 
 /**
  * A representation of a WMS Feature of a WMS Layer.
@@ -41,7 +37,6 @@ public class Feature implements Serializable{
      * The name that is visible to users of the feature.
      * @param wmsId 
      * A String that identifies this feature in the WMS service.
-     * @param layer
      */
     public Feature(String name,String wmsId){
         this.name = name;
@@ -76,5 +71,10 @@ public class Feature implements Serializable{
      */
     public String getWmsId(){
         return this.wmsId;
+    }
+    
+    @Override
+    public Feature clone(){
+        return new Feature(this.name,this.wmsId);
     }
 }

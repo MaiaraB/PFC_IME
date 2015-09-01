@@ -24,13 +24,20 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author arthurfernandes
+ * This class is a Controller tha works as a proxy to WMS requests.
+ * 
+ * The user must be signed in to perform WMS requests to this controller.
+ * This controller is responsible to verify the layers that are accessed by the 
+ * WMS requests and to check if the user has access to the corresponding layers.
+ * 
+ * If the user has access denied, a Http 401 code is sent.
  */
 @WebServlet(name = "WMSProxyServlet", urlPatterns = {"/wms"})
 public class WMSProxyServlet extends HttpServlet {
     private static final String GEOSERVER_URL = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/rio2016/wms?";
-    
+    private static final int REDIRECT_BUFFER_SIZE = 1024;
     //private static final String GEOSERVER_UFL = http://localhost/geoserver/rio2016/wms?
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -47,32 +54,26 @@ public class WMSProxyServlet extends HttpServlet {
             redirectStream(request,response);
         }
         else{
-            //TODO: specify error page
-            return;
+            response.sendError(401);
         }
     }
 
-    private boolean authenticateLayers(HttpServletRequest request, HttpServletResponse response){
-        User user = (User) request.getSession().getAttribute("user");
+    /**
+     * Specify if the user in this session has access to the layers of this WMS request.
+     * @param request servlet request
+     * @param response servlet response
+     * @return true if the user has access to the layers in its request parameters or false 
+     * otherwise.
+     */
+    protected boolean authenticateLayers(HttpServletRequest request, HttpServletResponse response){
+        final User user = (User) request.getSession().getAttribute("user");
         
-        if(user == null){
+        if(user == null){ //user isn't logged in
             return false;
         }
-        else{
-            String layerParam = null;
-            final Enumeration<String> requestParams = request.getParameterNames();
-            for(;requestParams.hasMoreElements();){
-                String param = requestParams.nextElement();
-                if(param.equalsIgnoreCase("LAYERS")){
-                    layerParam = request.getParameter(param);
-                }
-            }
+        else{ //user is logged in
             
-            if(layerParam == null){
-                return false;
-            }
-            
-            List<String> layerWmsIds = getLayerIds(request,layerParam);
+            final List<String> layerWmsIds = getLayerIdsFromRequest(request);
             
             //User isn't trying to access any layer deny it
             if(layerWmsIds.isEmpty()){
@@ -90,30 +91,58 @@ public class WMSProxyServlet extends HttpServlet {
         }
     }
     
-    private List<String> getLayerIds(HttpServletRequest request,String layerParam){
-        
+    /**
+     * This method is responsible for finding a param named layers in the request object,
+     * where the name of this parameter is not case sensitive, and return a list containing 
+     * the WMS layer id's specified by this parameter and separated by comma.
+     * @param request the servlet request
+     * @return list of WMS Layer id's
+     */
+    protected List<String> getLayerIdsFromRequest(HttpServletRequest request){
+        //Check if this request has layers as param, whether it's lowercase or uppercase
+        String layerParam = null;
+        final Enumeration<String> requestParams = request.getParameterNames();
+        for(;requestParams.hasMoreElements();){
+            String param = requestParams.nextElement();
+            if(param.equalsIgnoreCase("LAYERS")){
+                layerParam = request.getParameter(param);
+            }
+        }
+
         final List<String> layerIds = new ArrayList<>();
-        
+
+        //Returns an empty list if there is no layer param
+        if(layerParam == null){
+            return layerIds;
+        }        
         //Remove Spaces
         layerParam = layerParam.replaceAll(" ", "");
-        
-        String layerURIArray[] = layerParam.split(",");
+        //Each layer is separated by a comma
+        final String layerURISeparator = ",";
+        String layerURIArray[] = layerParam.split(layerURISeparator);
         for(String layerURI : layerURIArray){
             if(!layerURI.equals("")){
                 layerIds.add(layerURI);
             }
         }        
-        
+
         return layerIds;
     }
     
-    private void redirectStream(HttpServletRequest request, HttpServletResponse response){
-        final String urlName = GEOSERVER_URL +request.getQueryString();
+    /**
+     * This method is responsible for redirecting the request to the WMS Server 
+     * and returning the result to the user.
+     * @param request servlet request
+     * @param response servlet response
+     */
+    protected void redirectStream(HttpServletRequest request, HttpServletResponse response){
+        final String urlName = GEOSERVER_URL + request.getQueryString();
         URL url = null;
         try{
             url = new URL(urlName);
         }
         catch(MalformedURLException e){
+            //Internal error, the user will receive no data.
             return;
         }
         
@@ -128,10 +157,9 @@ public class WMSProxyServlet extends HttpServlet {
             return;
         }
         
-        //InputStream is = null;
         try(InputStream is = conn.getInputStream();
                 OutputStream os = response.getOutputStream()){
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[REDIRECT_BUFFER_SIZE];
             int len;
             while ((len = is.read(buffer)) != -1) {
                 os.write(buffer, 0, len);
@@ -141,7 +169,7 @@ public class WMSProxyServlet extends HttpServlet {
         catch(IOException e){
             return;
         }
-        finally{
+        finally{ //Close connection to save resources
             conn.disconnect();
         }
     }

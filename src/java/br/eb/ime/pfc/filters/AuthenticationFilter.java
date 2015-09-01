@@ -38,7 +38,11 @@ import javax.servlet.http.HttpSession;
 
 /**
  *
- * @author arthurfernandes
+ * This class is a Filter responsible to intercept requests and verify whether 
+ * the user is logged in this session or not.
+ * 
+ * If the user is logged in this Filter does nothing, otherwise it will send the user
+ * a 403 Http Error Code.
  */
 @WebFilter(filterName = "AuthenticationFilter", servletNames = {"MapServlet","WMSProxyServlet","ListLayersServlet"})
 public class AuthenticationFilter implements Filter{
@@ -57,7 +61,7 @@ public class AuthenticationFilter implements Filter{
         User user = (User) session.getAttribute("user");
         if(user == null){
             HttpServletResponse resp = (HttpServletResponse) response;
-            resp.sendRedirect(req.getContextPath());
+            resp.sendError(403);
         }
         else{
             chain.doFilter(request, response);
