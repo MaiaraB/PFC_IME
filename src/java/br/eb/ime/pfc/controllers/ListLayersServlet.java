@@ -28,7 +28,9 @@ import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
 import flexjson.JSONSerializer;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -59,11 +61,21 @@ public class ListLayersServlet extends HttpServlet {
         if(user != null){
             response.setContentType("application/json");
             final AccessLevel accessLevel = user.getAccessLevel();
-            final Collection<Layer> layers = accessLevel.getLayers();
+            
+            final PriorityQueue<Layer> orderedLayers = new PriorityQueue<>(new Comparator<Layer>(){
+                @Override
+                public int compare(Layer o1, Layer o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            for(Layer layer : accessLevel.getLayers()){
+                orderedLayers.add(layer);
+            }
+            
             JSONSerializer serializer = new JSONSerializer();
             serializer.rootName("layers").
                     include("features").
-                    exclude("*.class").serialize(layers,response.getWriter());
+                    exclude("*.class").serialize(orderedLayers,response.getWriter());
         }
         else{
             response.sendError(403); //User has no permission to access the resource.

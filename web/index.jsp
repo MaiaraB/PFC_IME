@@ -24,7 +24,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-sm-6 col-md-6 col-lg-5 hidden-xs iphone">
-                    <img src="resources/img/iphone.png" alt="">
+                    <img src="resources/img/iphone.png" alt="Celular exibindo mapa.">
                 </div>
                 <div class="col-sm-5 col-md-5 col-lg-5 col-md-offset-1 col-sm-offset-1">
                     <div class="panel panel-default">

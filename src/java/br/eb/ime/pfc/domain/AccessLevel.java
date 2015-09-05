@@ -1,10 +1,10 @@
 package br.eb.ime.pfc.domain;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -39,7 +39,7 @@ public class AccessLevel implements Serializable,Cloneable{
                 joinColumns = {@JoinColumn(name="ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")},
                 inverseJoinColumns = {@JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID")}
     )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-    private final Set<Layer> layers;
+    private final List<Layer> layers;
     
     /*
     * Representation Invariant:
@@ -57,7 +57,7 @@ public class AccessLevel implements Serializable,Cloneable{
      */
     public AccessLevel(String name){
         this.name = name;
-        this.layers = new LinkedHashSet<>();
+        this.layers = new LinkedList<>();
         checkRep();
     }
     
@@ -66,7 +66,7 @@ public class AccessLevel implements Serializable,Cloneable{
      */
     protected AccessLevel(){
         name = null;
-        this.layers = new LinkedHashSet<>();
+        this.layers = new LinkedList<>();
     }
     
     /**
@@ -90,8 +90,8 @@ public class AccessLevel implements Serializable,Cloneable{
      * Effects: layers is an unmodifiable list that specifies each layer in 
      * the order they were added to this Access Level.
      */
-    public Collection<Layer> getLayers(){
-        return Collections.unmodifiableSet(layers);
+    public List<Layer> getLayers(){
+        return Collections.unmodifiableList(layers);
     }
     
     /**

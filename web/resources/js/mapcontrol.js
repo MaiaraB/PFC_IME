@@ -1,4 +1,3 @@
-
 /* global ol, Infinity */
 
 var mapControl = {
@@ -109,7 +108,6 @@ mapControl.configureLayerBar = function(){
 };
 
 mapControl.showLayer = function (element,i) {
-    console.log(i);
     if(this.olLayers[i].getVisible()) {
         this.olLayers[i].setVisible(false);
         //otherLayers[i].setMap(null);
@@ -133,20 +131,18 @@ mapControl.showBaseLayer = function (baselayer){
 };
 
 mapControl.configurePopup = function(){
-    var container = document.getElementById('popup');
-    var content = document.getElementById('popup-content');
-    var closer = document.getElementById('popup-closer');
-
+    var container = document.getElementById("popup");
+    var content = $('#popup-content');
+    var closer = $('#popup-closer');
 
     /**
      * Add a click handler to hide the popup.
      * @return {boolean} Don't follow the href.
      */
-    closer.onclick = function() {
+    closer.click(function(){
       overlay.setPosition(undefined);
       closer.blur();
-      return false;
-    };
+    });
 
     /**
      * Create an overlay to anchor the popup to the map.
@@ -165,16 +161,18 @@ mapControl.configurePopup = function(){
     */
     var self = this;
     this.map.on('singleclick', function(evt) {
-        var coordinate = evt.coordinate;
-        overlay.setPosition(coordinate);
-        var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
-        coordinate, 'EPSG:3857', 'EPSG:4326'));
-        content.innerHTML = "<div><img src='resources/img/loading_small.gif' width='42' height='42'></div>";
-        self.getFeatureInfo(evt,content);
+        content.empty();
+        var hasFeatures = self.getFeatureInfo(evt,{"content" : content});
+        console.log(hasFeatures);
+        if(hasFeatures === true){
+            overlay.setPosition(evt.coordinate);
+        }
     });
 };
 
-mapControl.getFeatureInfo = function(evt,content){
+mapControl.getFeatureInfo = function(evt,obj){
+    var content = obj["content"];
+    var hasFeatures = false;
     var view = this.map.getView();
     var viewResolution = view.getResolution();
     var viewProjection = view.getProjection();
@@ -184,18 +182,40 @@ mapControl.getFeatureInfo = function(evt,content){
             var source = this.olLayers[i].getSource();
             var url = source.getGetFeatureInfoUrl(
               evt.coordinate, viewResolution, viewProjection,
-              {'INFO_FORMAT': 'application/json', 'FEATURE_COUNT': 50});
-              
+              {'INFO_FORMAT': 'application/json', 'FEATURE_COUNT': 1});
             if (url) {
                 var olLayer = this.olLayers[i];
-                $.getJSON(url,function(data){
-                    var features = olLayer.layerObj.features;
-                    var j,jj;
-                    for(j = 0,jj = features.length;j<jj;j++){
-                        content.innerHTML = "<p>"+features[j].name+" : " + data.features[0].properties[features[j].wmsId] + "</p>";
+                $.ajax({
+                    url : url,
+                    async : false,
+                    success: function(data){
+                        var jsonData;
+                        try{
+                            jsonData = $.parseJSON(data);
+                        }
+                        catch(err){
+                            return;
+                        }
+
+                        var features = olLayer.layerObj.features;
+                        var featuresData = jsonData.features[0];
+                        var j,jj;
+                        var layerTable = $("<table></table>").addClass("table").addClass("table-responsive");
+                        for(j = 0,jj = features.length;j<jj;j++){
+                            var featureValue = featuresData.properties[features[j].wmsId];
+                            if(featureValue){
+                                var layerTableRow = $("<tr></tr>");
+                                layerTableRow.append($("<td></td>").html(features[j].name));
+                                layerTableRow.append($("<td></td>").html(featureValue));
+                                layerTable.append(layerTableRow);
+                            }
+                        }
+                        content.append(layerTable);
+                        hasFeatures = true;
                     }
                 });
             }
         }
     }
+    return hasFeatures;
 };
