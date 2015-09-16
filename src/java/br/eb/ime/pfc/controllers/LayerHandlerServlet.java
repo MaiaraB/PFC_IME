@@ -23,14 +23,13 @@
  */
 package br.eb.ime.pfc.controllers;
 
-import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.Layer;
-import br.eb.ime.pfc.domain.User;
-import flexjson.JSONDeserializer;
+import br.eb.ime.pfc.domain.LayerManager;
+import br.eb.ime.pfc.hibernate.HibernateUtil;
 import flexjson.JSONSerializer;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -39,13 +38,11 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * This class is responsible for listing the WMS layers accessed by the user and 
- * its features as a JSON object.
- * 
+ * @author arthurfernandes
  */
-@WebServlet(name = "ListLayersServlet", urlPatterns = {"/layers"})
-public class ListLayersServlet extends HttpServlet {
-
+@WebServlet(name = "LayerHandlerServlet", urlPatterns = {"/layer-handler"})
+public class LayerHandlerServlet extends HttpServlet {
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -57,29 +54,37 @@ public class ListLayersServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        final User user = (User) request.getSession().getAttribute("user");
-        if(user != null){
-            response.setContentType("application/json");
-            final AccessLevel accessLevel = user.getAccessLevel();
+        final String action = request.getParameter("action");
+        if(action!=null){
+            final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
             
-            final PriorityQueue<Layer> orderedLayers = new PriorityQueue<>(new Comparator<Layer>(){
-                @Override
-                public int compare(Layer o1, Layer o2) {
-                    return o1.getName().compareTo(o2.getName());
-                }
-            });
-            for(Layer layer : accessLevel.getLayers()){
-                orderedLayers.add(layer);
+            if(action.equalsIgnoreCase("update")){
+                
+                request.getServletContext().log("JSONOBJECT:"+request.getParameter("features[0][name]"));
+                
             }
-            
-            JSONSerializer serializer = new JSONSerializer();
-            
-            serializer.rootName("layers").
+            else if(action.equalsIgnoreCase("add")){
+
+            }
+            else if(action.equalsIgnoreCase("delete")){
+                request.getServletContext().log("DELETE:"+request.getParameter("objId"));
+            }
+            else if(action.equalsIgnoreCase("readAll")){
+                final List<Layer> allLayers = layerManager.getAllLayers();
+                JSONSerializer serializer = new JSONSerializer();
+                final StringBuilder jsonLayersBuilder = new StringBuilder();
+                
+                serializer.rootName("objects").
                     include("features").
-                    exclude("*.class").serialize(orderedLayers,response.getWriter());
-        }
-        else{
-            response.sendError(403); //User has no permission to access the resource.
+                    exclude("*.class").serialize(allLayers,jsonLayersBuilder);
+                
+                response.setContentType("application/json");
+                response.getWriter().println(jsonLayersBuilder.toString());
+                response.getWriter().flush();
+            }
+            else{
+                response.sendError(404);
+            }
         }
     }
 
