@@ -1,5 +1,9 @@
 package br.eb.ime.pfc.domain;
 
+import java.util.Comparator;
+import java.util.List;
+import org.hibernate.Hibernate;
+import org.hibernate.Query;
 import org.hibernate.Session;
 
 /*
@@ -43,6 +47,22 @@ public class LayerManager {
     
     public Layer getLayerById(String wmsId){
         return (Layer) this.session.get(Layer.class, wmsId);
+    }
+    
+    public List<Layer> getAllLayers(){
+        final Query query = session.createQuery("from Layer");
+        final List<Layer> allLayers = query.list();
+        allLayers.sort(new Comparator<Layer>(){
+            @Override
+            public int compare(Layer o1, Layer o2) {
+                return o1.getWmsId().compareTo(o2.getWmsId());
+            }
+        });
+        
+        for(Layer layer : allLayers){
+            Hibernate.initialize(layer);
+        }
+        return allLayers;
     }
     
     public void update(Layer layer){
