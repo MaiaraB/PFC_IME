@@ -18,7 +18,10 @@ and open the template in the editor.
     background-color: white;
     -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
     filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
-    padding: 15px;
+    //padding: 15px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 18px;
     border-radius: 10px;
     border: 1px solid #cccccc;
     bottom: 12px;
@@ -28,9 +31,12 @@ and open the template in the editor.
 
 .ol-popup-content{
     min-width: 100px;
-    min-height: 100px;
+    min-height: 10px;
     max-height : 30vh;
+    maxwidth: 50vh;
     overflow : scroll;
+    padding: 3px;
+    border-style: hidden;
 }
 
 .ol-popup:after, .ol-popup:before {
@@ -39,14 +45,8 @@ and open the template in the editor.
     content: " ";
 }
 
-.ol-popup:after {
-    border-top-color: white;
-    border-width: 10px;
-    left: 48px;
-    margin-left: -10px;
-}
 .ol-popup:before {
-    border-top-color: #cccccc;
+    border-top-color: white;
     border-width: 11px;
     left: 48px;
     margin-left: -11px;
@@ -56,18 +56,28 @@ and open the template in the editor.
     pointer-events: none;
 }
 
+.ol-popup:before {
+    border-top-color: white;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+/*
 .ol-popup:after {
     border-top-color: white;
     border-width: 10px;
     left: 48px;
     margin-left: -10px;
 }
-.ol-popup:before {
-    border-top-color: #cccccc;
-    border-width: 11px;
+
+.ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
     left: 48px;
-    margin-left: -11px;
+    margin-left: -10px;
 }
+*/
+
 .ol-popup-closer {
     text-decoration: none;
     position: absolute;
@@ -77,3 +87,64 @@ and open the template in the editor.
 .ol-popup-closer:after {
     content: "✖";
 }
+
+table {
+    color: #808080;
+    border-collapse: collapse;
+    border-radius: 10px;
+    border-style: hidden;
+    box-shadow: 0 0 0 2px #336666;
+    padding: 10px;
+    
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 14px;
+    //font-weight: bold;
+    line-height: 1.4em;
+    font-style: normal;
+    //border-collapse:separate;
+}
+
+th {
+    color: white;
+    border-radius: 10px;
+    border-style: hidden;
+    box-shadow: 0 0 0 1px #336666;
+    background-color: #336666;
+    vertical-align: middle;
+}
+
+tr {
+    border-radius: 10px;
+    border-style: hidden;
+    
+    
+    //box-shadow: 0 0 0 1px #336666;
+    
+}
+
+td {
+    border-radius: 10px;
+    border-style: hidden;
+    
+    
+    &:first-child {
+      padding-top: .5em;
+    }
+    &:last-child {
+      padding-bottom: .5em;
+    }
+
+    &:before {
+      content: attr(data-th)": "; // who knew you could do this? The internet, that's who.
+      font-weight: bold;
+
+      // optional stuff to make it look nicer
+      width: 6.5em; // magic number :( adjust according to your own content
+      display: inline-block;
+      // end options
+      
+      
+    }
+}
+
+

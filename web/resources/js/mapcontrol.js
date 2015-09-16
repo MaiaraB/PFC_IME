@@ -163,9 +163,11 @@ mapControl.configurePopup = function(){
     this.map.on('singleclick', function(evt) {
         content.empty();
         var hasFeatures = self.getFeatureInfo(evt,{"content" : content});
-        console.log(hasFeatures);
+        //console.log(hasFeatures);
         if(hasFeatures === true){
             overlay.setPosition(evt.coordinate);
+        } else {
+            overlay.setPosition(undefined);
         }
     });
 };
@@ -185,6 +187,7 @@ mapControl.getFeatureInfo = function(evt,obj){
               {'INFO_FORMAT': 'application/json', 'FEATURE_COUNT': 1});
             if (url) {
                 var olLayer = this.olLayers[i];
+                var name = this.layers[i].name;
                 $.ajax({
                     url : url,
                     async : false,
@@ -200,9 +203,21 @@ mapControl.getFeatureInfo = function(evt,obj){
                         var features = olLayer.layerObj.features;
                         var featuresData = jsonData.features[0];
                         var j,jj;
-                        var layerTable = $("<table></table>").addClass("table").addClass("table-responsive");
-                        for(j = 0,jj = features.length;j<jj;j++){
-                            var featureValue = featuresData.properties[features[j].wmsId];
+                        
+                        var layerTable = $("<table></table>").addClass("table").addClass("");
+                        var layerTableRowHeader = $("<tr></tr>");
+                        layerTableRowHeader.append($("<th></th>").html(name).attr("rowspan",features.length));
+                        var featureValue = featuresData.properties[features[0].wmsId];
+                        if(featureValue){
+                                layerTableRowHeader.append($("<td></td>").html(features[0].name));
+                                layerTableRowHeader.append($("<td></td>").html(featureValue));
+                                layerTable.append(layerTableRowHeader);
+                        }
+                        layerTable.append(layerTableRowHeader);
+                        console.log(name);
+                        
+                        for(j = 1,jj = features.length;j<jj;j++){
+                            featureValue = featuresData.properties[features[j].wmsId];
                             if(featureValue){
                                 var layerTableRow = $("<tr></tr>");
                                 layerTableRow.append($("<td></td>").html(features[j].name));
