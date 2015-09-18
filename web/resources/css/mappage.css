@@ -21,19 +21,19 @@ and open the template in the editor.
     //padding: 15px;
     padding-left: 10px;
     padding-right: 10px;
-    padding-top: 18px;
+    padding-bottom: 0px;
+    //padding-top: 18px;
     border-radius: 10px;
     border: 1px solid #cccccc;
     bottom: 12px;
     left: -50px;
-    
 }
 
 .ol-popup-content{
-    min-width: 100px;
+    min-width: 40vh;
     min-height: 10px;
-    max-height : 30vh;
-    maxwidth: 50vh;
+    max-height: 30vh;
+    max-width: 100vh;
     overflow : scroll;
     padding: 3px;
     border-style: hidden;
@@ -101,6 +101,7 @@ table {
     //font-weight: bold;
     line-height: 1.4em;
     font-style: normal;
+    margin-top: 15px;
     //border-collapse:separate;
 }
 
@@ -111,13 +112,13 @@ th {
     box-shadow: 0 0 0 1px #336666;
     background-color: #336666;
     vertical-align: middle;
+    width: 20%; 
+    word-wrap: break-word;
 }
 
 tr {
     border-radius: 10px;
     border-style: hidden;
-    
-    
     //box-shadow: 0 0 0 1px #336666;
     
 }
@@ -125,26 +126,7 @@ tr {
 td {
     border-radius: 10px;
     border-style: hidden;
-    
-    
-    &:first-child {
-      padding-top: .5em;
-    }
-    &:last-child {
-      padding-bottom: .5em;
-    }
-
-    &:before {
-      content: attr(data-th)": "; // who knew you could do this? The internet, that's who.
-      font-weight: bold;
-
-      // optional stuff to make it look nicer
-      width: 6.5em; // magic number :( adjust according to your own content
-      display: inline-block;
-      // end options
-      
-      
-    }
+   
 }
 
 
