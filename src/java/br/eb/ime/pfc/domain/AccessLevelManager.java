@@ -23,7 +23,11 @@
  */
 package br.eb.ime.pfc.domain;
 
+import java.util.Comparator;
+import java.util.List;
+import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 
 /**
@@ -52,6 +56,22 @@ public class AccessLevelManager {
     
     public void delete(AccessLevel accessLevel) throws HibernateException{
         this.session.delete(accessLevel);
+    }
+    
+    public List<AccessLevel> readAll() throws HibernateException{
+        final Query query = session.createQuery("from AccessLevel");
+        final List<AccessLevel> allAccessLevels = query.list();
+        allAccessLevels.sort(new Comparator<AccessLevel>(){
+            @Override
+            public int compare(AccessLevel o1, AccessLevel o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        
+        for(AccessLevel accessLevel : allAccessLevels){
+            Hibernate.initialize(accessLevel);
+        }
+        return allAccessLevels;
     }
     
 }
