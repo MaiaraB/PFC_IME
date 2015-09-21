@@ -24,7 +24,10 @@
 package br.eb.ime.pfc.controllers;
 
 import br.eb.ime.pfc.domain.AccessLevel;
+import br.eb.ime.pfc.domain.AccessLevel.LayerRepetitionException;
 import br.eb.ime.pfc.domain.AccessLevelManager;
+import br.eb.ime.pfc.domain.Layer;
+import br.eb.ime.pfc.domain.LayerManager;
 import br.eb.ime.pfc.hibernate.HibernateUtil;
 import flexjson.JSONSerializer;
 import java.io.IOException;
@@ -34,6 +37,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hibernate.HibernateException;
 
 /**
  *
@@ -58,19 +62,49 @@ public class AccessLevelHandlerServlet extends HttpServlet {
             final AccessLevelManager accessLevelManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
             
             if(action.equalsIgnoreCase("update")){
-                
-                //request.getServletContext().log("JSONOBJECT:"+request.getParameter("features[0][name]"));
-                response.getWriter().print("OK");
-                response.getWriter().flush();
+                try{
+                    final AccessLevel accessLevel = this.retrieveObject(request);
+                    accessLevelManager.update(accessLevel);
+                    response.getWriter().print("OK");
+                }
+                catch(RuntimeException e){
+                    response.getWriter().print("ERROR");
+                }
+                finally{
+                    response.getWriter().flush();
+                }
             }
             else if(action.equalsIgnoreCase("add")){
-                response.getWriter().print("OK");
-                response.getWriter().flush();
+                try{
+                    final AccessLevel accessLevel = this.retrieveObject(request);
+                    if(accessLevelManager.getAccessLevel(accessLevel.getName())!=null){
+                        response.getWriter().print("DUPLICATE");
+                    }
+                    else{
+                        accessLevelManager.create(accessLevel);
+                        response.getWriter().print("OK");
+                    }
+                }
+                catch(RuntimeException e){
+                    response.getWriter().print("ERROR");
+                }
+                finally{
+                    response.getWriter().flush();
+                }
             }
             else if(action.equalsIgnoreCase("delete")){
-                request.getServletContext().log("DELETE:"+request.getParameter("wmsId"));
-                response.getWriter().print("OK");
-                response.getWriter().flush();
+                final String name = request.getParameter("name");
+                try{
+                    final AccessLevel accessLevel = accessLevelManager.getAccessLevel(name);
+                    accessLevelManager.delete(accessLevel);
+                    response.getWriter().print("OK");
+                }
+                catch(RuntimeException e){
+                    response.getWriter().print("ERROR");
+                }
+                finally{
+                    response.getWriter().flush();
+                }
             }
             else if(action.equalsIgnoreCase("readAll")){
                 final List<AccessLevel> accessLevels = accessLevelManager.readAll();
@@ -91,6 +125,35 @@ public class AccessLevelHandlerServlet extends HttpServlet {
         }
     }
 
+    public AccessLevel retrieveObject(HttpServletRequest request){
+        String name = request.getParameter("name");
+        if(name == null || name.equals("")){
+            throw new RuntimeException("No name attribute specified");
+        }
+        final AccessLevel accessLevel = new AccessLevel(name);
+        String layerWmsId;
+        int layerIndex = 0;
+        final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+        while((layerWmsId = request.getParameter("layers["+layerIndex+"][wmsId]")) != null){
+            if(layerWmsId.equals("")){
+                throw new RuntimeException("");
+            }
+            try{
+                final Layer layer = layerManager.getLayerById(layerWmsId);
+                accessLevel.addLayer(new Layer(layerWmsId,layerWmsId));
+            }
+            catch(HibernateException e){
+                throw new RuntimeException("No layer with the specified id");
+            }
+            catch(LayerRepetitionException e){
+                throw new RuntimeException("Repeated layer to add");
+            }
+            layerIndex += 1;
+        }
+        
+        return accessLevel;
+    }
+    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

@@ -27,7 +27,8 @@
                 
                 WMSCRUD.ObjectHandler = function(){
                     this.ACTIONS = {DELETE : "delete",READALL : "readAll",SAVE: "update",ADD: "add"};
-                    this.ACTIONSUBJECTSTATE = {UNDEFINED : "UNDEFINED",OK : "OK", ERROR : "ERROR",TIMEOUT : "TIMEOUT"};
+                    this.ACTIONSUBJECTSTATE = {UNDEFINED : "UNDEFINED",OK : "OK", 
+                        ERROR : "ERROR",TIMEOUT : "TIMEOUT",DUPLICATE : "DUPLICATE",RESTRICTIONVIOLATION : "RESTRICTION"};
                     this.DATARESPONSESTATE = {OK : "OK",ERROR : "ERROR"};
                     this.REQUESTTIMEOUT = 3000;
                     this.viewIdPreffix = "handler";
@@ -37,30 +38,33 @@
                     this.idField = "";
                     this.objectDiv = $();
                     this.objectListDiv = $();
-                    
+                    this.observers = {};
                 };
                 
                 WMSCRUD.ObjectHandler.prototype.attach = function(actionSubject,actionObserver){
-                    actionSubject.observers = actionSubject.observers || [];
-                    actionSubject.observers.push(actionObserver);
+                    this.observers[actionSubject] = this.observers[actionSubject] || [];
+                    //actionSubject.observers = actionSubject.observers || [];
+                    //actionSubject.observers.push(actionObserver);
+                    this.observers[actionSubject].push(actionObserver);
                 };
                 
                 WMSCRUD.ObjectHandler.prototype.detach = function(actionSubject,actionObserver){
                     if(typeof actionSubject.observers !== 'undefined'){
-                        var i = 0, ii = actionSubject.observers.length;
+                        var i = 0, ii = this.observers[actionSubject].length;
                         for(;i<ii;i++){
-                            if(actionSubject.observers[i] === actionObserver){
-                                actionSubject.observers.splice(i,1);
+                            if(this.observers[actionSubject][i] === actionObserver){
+                                this.observers[actionSubject].splice(i,1);
                             }
                         }
                     }
                 };
                 
                 WMSCRUD.ObjectHandler.prototype.notify = function(actionSubject){
-                    if(typeof actionSubject.observers !== 'undefined'){
-                        var i =0,ii=actionSubject.observers.length;
+                    var observers = this.observers[actionSubject];
+                    if(typeof observers !== 'undefined'){
+                        var i =0,ii=observers.length;
                         for(;i<ii;i++){
-                            var observer = actionSubject.observers[i];
+                            var observer = observers[i];
                             if(typeof actionSubject.state === 'undefined'){
                                 actionSubject.state = this.ACTIONSUBJECTSTATE.UNDEFINED;
                             }
@@ -189,29 +193,29 @@
                 
                 WMSCRUD.ObjectHandler.prototype.add = function(){
                     var self = this;
-                    this.save.state = this.ACTIONSUBJECTSTATE.UNDEFINED;
+                    this.add.state = this.ACTIONSUBJECTSTATE.UNDEFINED;
                     var objectSave = this.initializeObject(self);
                     self.objectSave = objectSave;
                     if(!this.obeyRestrictions(objectSave)){
                         console.log("Object does not obey restrictions");
-                        this.save.state = this.ACTIONSUBJECTSTATE.ERROR;
-                        this.notify(this.save);
+                        this.add.state = this.ACTIONSUBJECTSTATE.RESTRICTIONVIOLATION;
+                        this.notify(self.add);
                         return;
                     }
                     
                     //Check if mapping corresponds to jsonObject
                     if(!this.matchMapping(self,objectSave)){
                         console.log("Object does not match mapping type");
-                        this.save.state = this.ACTIONSUBJECTSTATE.ERROR;
+                        this.add.state = this.ACTIONSUBJECTSTATE.ERROR;
                         self.notify(self.save);
                     }
                     var saveURL = this.url + "?action=" + this.ACTIONS.ADD;
                     var successCallBack = function(self,data){
                         if(typeof data !== 'undefined' && data === self.DATARESPONSESTATE.OK){
-                            self.save.state = self.ACTIONSUBJECTSTATE.OK;
+                            self.add.state = self.ACTIONSUBJECTSTATE.OK;
                         }
                         else{
-                            self.save.state = self.ACTIONSUBJECTSTATE.ERROR;
+                            self.add.state = self.ACTIONSUBJECTSTATE.ERROR;
                         }
                     };
                     
@@ -225,8 +229,9 @@
                     self.objectSave = objectSave;
                     if(!this.obeyRestrictions(objectSave)){
                         console.log("Object does not obey restrictions");
-                        this.save.state = this.ACTIONSUBJECTSTATE.ERROR;
-                        this.notify(this.save);
+                        this.save.state = this.ACTIONSUBJECTSTATE.RESTRICTIONVIOLATION;
+                        this.notify(self.save);
+                        console.log(this.observers[self.save]);
                         return;
                     }
                     
@@ -354,7 +359,32 @@
                     return { name : "",
                         wmsId : "",style : "",opacity : "",features : [{name : "",wmsId :""}]};
                 };
-                LayersHandler.prototype.obeyRestrictions = function(self,matchObject){
+                LayersHandler.prototype.obeyRestrictions = function(matchObject){
+                    if(typeof matchObject === 'undefined'){
+                        return false;
+                    }
+                    if(matchObject['wmsId'] === ""){
+                        return false;
+                    }
+                    try{
+                        if(matchObject['opacity'] === ""){
+                            return false;
+                        }
+                        var opacity = parseFloat(matchObject['opacity']);
+                        if(opacity < 0 || opacity > 1){
+                            return false;
+                        }
+                    }
+                    catch(err){
+                        return false;
+                    }
+                    var i = 0,ii=matchObject['features'].length;
+                    for(;i<ii;i++){
+                        var feature = matchObject['features'][i];
+                        if(feature['wmsId'] === ''){
+                            return false;
+                        }
+                    }
                     return true;
                 };
                 
@@ -367,11 +397,25 @@
                     this.saveState = true;
                 };
                 AccessLevelHandler.prototype = Object.create(WMSCRUD.ObjectHandler.prototype);
-                AccessLevelHandler.constructor = LayersHandler;
+                AccessLevelHandler.constructor = AccessLevelHandler;
                 AccessLevelHandler.prototype.mapping = function(){
                     return { name : "",layers: [{wmsId :""}]};
                 };
-                AccessLevelHandler.prototype.obeyRestrictions = function(self,matchObject){
+                AccessLevelHandler.prototype.obeyRestrictions = function(matchObject){
+                    if(typeof matchObject === 'undefined'){
+                        return false;
+                    }
+                    if(matchObject['name'] === ''){
+                        return false;
+                    }
+                    var layers = matchObject['layers'];
+                    var i = 0,ii=layers.length;
+                    for(;i<ii;i++){
+                        var layer = layers[i];
+                        if(layer['wmsId']===''){
+                            return false;
+                        }
+                    }
                     return true;
                 };
                 
@@ -384,11 +428,20 @@
                     this.saveState = true;
                 };
                 UserHandler.prototype = Object.create(WMSCRUD.ObjectHandler.prototype);
-                UserHandler.constructor = LayersHandler;
+                UserHandler.constructor = UserHandler;
                 UserHandler.prototype.mapping = function(){
                     return { username : "",password: "", accessLevel : [{name : ""}]};
                 };
-                UserHandler.prototype.obeyRestrictions = function(self,matchObject){
+                UserHandler.prototype.obeyRestrictions = function(matchObject){
+                    if(typeof matchObject === 'undefined'){
+                        return false;
+                    }
+                    if(matchObject['username'] === ''){
+                        return false;
+                    }
+                    if(matchObject['accessLevel'] === ''){
+                        return false;
+                    }
                     return true;
                 };
                 
@@ -452,7 +505,14 @@
                 });
                 
                 addSaveButton.click(function(event){
-                    objectHandler.add();
+                    if(objectHandler.saveState){
+                        console.log("SAVE");
+                        objectHandler.save();
+                    }
+                    else{
+                        console.log("ADD");
+                        objectHandler.add();
+                    }
                 });
                 deleteButton.click(function(event){
                    objectHandler.deleteCurrent(); 
@@ -481,9 +541,7 @@
                             var template= $(this).parents(".handler-template-obj").first();
                             var objId = template.find(".handler-id-"+objectHandler.idField).first().text();
                             objectHandler.delete.viewObj = template;
-                            console.log(objectHandler.delete.viewObj);
                             objectHandler.delete(objId);
-                            
                         };
                         var objectIds = objectHandler.objectListDiv.find(".handler-id-"+objectHandler.idField);
                         objectIds.click(loadObjFunction);
@@ -498,50 +556,95 @@
                 objectHandler.attach(objectHandler.delete,function(state){
                    if(state === objectHandler.ACTIONSUBJECTSTATE.OK){
                        if(typeof objectHandler.delete.viewObj !== 'undefined'){
-                           console.log('delete');
                            $(objectHandler.delete.viewObj).remove();
                        }
                    } 
                 });
                 
-                objectHandler.attach(objectHandler.add,function(state){
+                var addSaveActionSuccess = function(state){
                     if(state === objectHandler.ACTIONSUBJECTSTATE.OK){
                         if(typeof objectHandler.objectSave !== 'undefined' && typeof objectHandler.objectSave !== null){
-                            var template = objectHandler.objectListDiv.siblings(".handler-template-obj").first();
-                            var newElement = template.clone(true);
-                            newElement.show();
-                            newElement.find(".handler-id-"+objectHandler.idField) 
-                                          .text(objectHandler.objectSave[objectHandler.idField]);
-                            newElement.appendTo(objectHandler.objectListDiv);              
                             objectHandler.objectSave = undefined;
                             objectHandler.readObjs();      
                         }
                     }
-                });
+                };
                 
-                var errorMessageContainer = $("#error-message-container");
+                objectHandler.attach(objectHandler.add,addSaveActionSuccess);
+                objectHandler.attach(objectHandler.save,addSaveActionSuccess);
+                
+                var messageContainer = $("#message-container");
                 
                 /*
                 errorMessageContainer.draggable({
                    handler: errorMessageContainer.find(".modal-header") 
                 });*/
                 var alertMessage = function(title,message,importance){    
-                    errorMessageContainer.find(".modal-header")
-                            .removeClass("modal-danger","modal-success","modal-info","modal-warning")
-                            .addClass("modal-"+importance);
-                    errorMessageContainer.find("#error-message-title").text(title);
-                    errorMessageContainer.find("#error-message-body").text(message);
-                    errorMessageContainer.modal({backdrop: false});
+                    var messageView = messageContainer.find(".message-body").first().clone();
+                    messageView.removeClass("alert-danger","alert-success","alert-info","alert-warning")
+                            .addClass("alert-"+importance);
+                    messageView.find(".message-title").text(title);
+                    messageView.find(".message-body").text(message);
+                    panel.find(".panel-heading").find(".message-body").remove();
+                    messageView.appendTo(panelHeading);
+                    messageView.fadeIn(300);
                 };
                 alertMessage.importance = {WARNING : 'warning',SUCCESS : 'success',INFO : 'info',DANGER : 'danger'};
-                var actionConfirmation = function(state){
-                    alert("ok");
-                };
                 
-                objectHandler.attach(objectHandler.add,actionConfirmation);
-                objectHandler.attach(objectHandler.save,actionConfirmation);
-                objectHandler.attach(objectHandler.delete,actionConfirmation);
-                
+                objectHandler.attach(objectHandler.add,function(state){
+                    switch(state){
+                        case objectHandler.ACTIONSUBJECTSTATE.OK:
+                            alertMessage("Sucesso: ","Item adicionado com sucesso",alertMessage.importance.SUCCESS);
+                            break;
+                        case objectHandler.ACTIONSUBJECTSTATE.ERROR:
+                            alertMessage("Erro: ","Um problema ocorreu ao processar sua requisição",alertMessage.importance.DANGER);
+                            break;
+                        case objectHandler.ACTIONSUBJECTSTATE.DUPLICATE:
+                            alertMessage("Erro: ","Um item com mesmo identificador já foi adicionado",alertMessage.importance.DANGER);
+                            break;
+                        case objectHandler.ACTIONSUBJECTSTATE.RESTRICTIONVIOLATION:
+                            alertMessage("Aviso: ","Não foi possível adicionar o item pois há campos preenchidos incorretamente",alertMessage.importance.WARNING);
+                            break;
+                        case objectHandler.ACTIONSUBJECTSTATE.TIMEOUT:
+                            alertMessage("Erro: ","O servidor não respondeu à requisição",alertMessage.importance.DANGER);
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                objectHandler.attach(objectHandler.save,function(state){
+                    switch(state){
+                        case objectHandler.ACTIONSUBJECTSTATE.OK:
+                            alertMessage("Sucesso: ","O item foi salvo com sucesso",alertMessage.importance.SUCCESS);
+                            break;
+                        case objectHandler.ACTIONSUBJECTSTATE.ERROR:
+                            alertMessage("Erro: ","Um problema ocorreu ao processar sua requisição",alertMessage.importance.DANGER);
+                            break;
+                        case objectHandler.ACTIONSUBJECTSTATE.RESTRICTIONVIOLATION:
+                            alertMessage("Aviso: ","Não foi possível salvar o item pois há campos preenchidos incorretamente",alertMessage.importance.WARNING);
+                            break;
+                        case objectHandler.ACTIONSUBJECTSTATE.TIMEOUT:
+                            alertMessage("Erro: ","O servidor não respondeu à requisição",alertMessage.importance.DANGER);
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                objectHandler.attach(objectHandler.delete,function(state){
+                    switch(state){
+                        case objectHandler.ACTIONSUBJECTSTATE.OK:
+                            alertMessage("Sucesso: ","O item foi removido com sucesso",alertMessage.importance.SUCCESS);
+                            break;
+                        case objectHandler.ACTIONSUBJECTSTATE.ERROR:
+                            alertMessage("Erro: ","Um problema ocorreu ao processar sua requisição",alertMessage.importance.DANGER);
+                            break;
+                        case objectHandler.ACTIONSUBJECTSTATE.TIMEOUT:
+                            alertMessage("Erro: ","O servidor não respondeu à requisição",alertMessage.importance.DANGER);
+                            break;
+                        default:
+                            break;
+                    }
+                });
             };
             
                 var layersPanel = $("#layers-panel");
@@ -550,7 +653,6 @@
                 initializeUIPanel(layersPanel,LayersHandler,"features");
                 initializeUIPanel(accessLevelPanel,AccessLevelHandler,"layers");
                 initializeUIPanel(usersPanel,UserHandler,"accessLevel");
-                
             });
         </script>
         <style>
@@ -567,13 +669,23 @@
             .list-group-item:hover, a.list-group-item:focus {text-decoration: none;background-color: rgb(245, 245, 245);}
             .list-group { margin-bottom:0px; }
             .input-group {margin-bottom:15px;}
-            
+            body{ 
+                background-image: url('${pageContext.request.contextPath}/resources/img/background3.jpg');
+                background-repeat: repeat;
+            }
+            body .panel {
+                background-color: rgba(255,255,255,0.5);
+            }
         </style>
     </head>
     <body>
+        
         <div class="container container-fluid">
+            <div>
+                
+            </div>
             <!--LAYERS-->
-            <div id="layers-panel" class="panel panel-success">
+            <div id="layers-panel" class="panel panel-default">
                 <div class="panel-heading clickable">
                     <span class="glyphicon glyphicon-list"></span>Camadas
                 </div>
@@ -658,7 +770,7 @@
                     </div>
             </div>   
             <!--ACCESS-LEVEL-->
-            <div id="access-level-panel" class="panel panel-primary">
+            <div id="access-level-panel" class="panel panel-default">
                 <div class="panel-heading clickable">
                     <span class="glyphicon glyphicon-list"></span>Níveis de Acesso
                 </div>
@@ -703,7 +815,7 @@
                                         <span class="input-group-addon clickable handler-save-current handler-add-save">Salvar</span>
                                 </div>
                                 <div class="panel-body">    
-                                    <div class="panel panel-success">
+                                    <div class="panel panel-danger">
                                         <div class="panel-heading">
                                             Camadas
                                         </div>
@@ -728,7 +840,7 @@
             
             <!--USERS-->
             
-            <div id="users-panel" class="panel panel-warning">
+            <div id="users-panel" class="panel panel-default">
                 <div class="panel-heading clickable">
                     <span class="glyphicon glyphicon-list"></span>Usuários
                 </div>
@@ -769,7 +881,7 @@
                         <div class="col-md-6">
                             <div class="panel panel-default object-div">
                                 <div class="panel-heading input-group">
-                                        <input type="text" class="pull-left form-control handler-object-username" placeholder="name"/>
+                                        <input type="text" class="pull-left form-control handler-object-username" placeholder="username"/>
                                         <span class="input-group-addon clickable handler-save-current handler-add-save">Salvar</span>
                                 </div>
                                 <div class="panel-body">    
@@ -790,11 +902,7 @@
                                         <label for="handler-object-name" class="input-group-addon">Telefone</label>
                                         <input type="text" class="form-control handler-object-telnumber" placeholder="telefone">
                                     </div>
-                                    <div class="input-group">
-                                        <label for="handler-object-name" class="input-group-addon">Telefone</label>
-                                        <input type="text" class="form-control handler-object-telnumber" placeholder="telefone">
-                                    </div>
-                                    <div class="panel panel-success">
+                                    <div class="panel panel-danger">
                                         <div class="panel-heading">
                                             Nível de Acesso
                                         </div>
@@ -810,6 +918,12 @@
                         </div>
                     </div>
             </div>  
+            <div id="message-container" style="display:none">
+                <div class="message-body" style="display:none">
+                    <strong><span class="message-title"></span></strong>
+                    <span class="message-body"></span>
+                </div>
+            </div>
         </div>
     </body>
 </html>

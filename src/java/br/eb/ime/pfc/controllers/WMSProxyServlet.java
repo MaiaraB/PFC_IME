@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 public class WMSProxyServlet extends HttpServlet {
     private static final String GEOSERVER_URL = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/rio2016/wms?";
     private static final int REDIRECT_BUFFER_SIZE = 1024;
-    //private static final String GEOSERVER_UFL = http://localhost/geoserver/rio2016/wms?
+    //private static final String GEOSERVER_URL = "http://localhost/geoserver/rio2016/wms?";
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>

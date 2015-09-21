@@ -26,7 +26,6 @@ package br.eb.ime.pfc.controllers;
 import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.User;
-import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
 import java.io.IOException;
 import java.util.Comparator;

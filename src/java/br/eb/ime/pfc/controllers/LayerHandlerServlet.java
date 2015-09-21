@@ -23,6 +23,7 @@
  */
 package br.eb.ime.pfc.controllers;
 
+import br.eb.ime.pfc.domain.Feature;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.LayerManager;
 import br.eb.ime.pfc.hibernate.HibernateUtil;
@@ -58,19 +59,49 @@ public class LayerHandlerServlet extends HttpServlet {
             final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
             
             if(action.equalsIgnoreCase("update")){
-                
-                request.getServletContext().log("JSONOBJECT:"+request.getParameter("features[0][name]"));
-                response.getWriter().print("OK");
-                response.getWriter().flush();
+                try{
+                    final Layer layer = this.retrieveObject(request);
+                    layerManager.update(layer);
+                    response.getWriter().print("OK");
+                }
+                catch(RuntimeException e){
+                    response.getWriter().print("ERROR");
+                }
+                finally{
+                    response.getWriter().flush();
+                }
             }
             else if(action.equalsIgnoreCase("add")){
-                response.getWriter().print("OK");
-                response.getWriter().flush();
+                try{
+                    final Layer layer = this.retrieveObject(request);
+                    if(layerManager.getLayerById(layer.getWmsId())!=null){
+                        response.getWriter().print("DUPLICATE");
+                    }
+                    else{
+                        layerManager.create(layer);
+                        response.getWriter().print("OK");
+                    }
+                }
+                catch(RuntimeException e){
+                    response.getWriter().print("ERROR");
+                }
+                finally{
+                    response.getWriter().flush();
+                }
             }
             else if(action.equalsIgnoreCase("delete")){
-                request.getServletContext().log("DELETE:"+request.getParameter("wmsId"));
-                response.getWriter().print("OK");
-                response.getWriter().flush();
+                final String wmsId = request.getParameter("wmsId");
+                try{
+                    final Layer layer = layerManager.getLayerById(wmsId);
+                    layerManager.delete(layer);
+                    response.getWriter().print("OK");
+                }
+                catch(RuntimeException e){
+                    response.getWriter().print("ERROR");
+                }
+                finally{
+                    response.getWriter().flush();
+                }
             }
             else if(action.equalsIgnoreCase("readAll")){
                 final List<Layer> allLayers = layerManager.getAllLayers();
@@ -90,7 +121,47 @@ public class LayerHandlerServlet extends HttpServlet {
             }
         }
     }
-
+    
+    public Layer retrieveObject(HttpServletRequest request){
+        String wmsId = request.getParameter("wmsId");
+        String name = request.getParameter("name");
+        if(name == null || wmsId == null || wmsId.equals("")){
+            throw new RuntimeException("No id or name attribute specified");
+        }
+        final Layer layer = new Layer(name,wmsId);
+        
+        String style = request.getParameter("style");
+        if(style != null){
+            layer.setStyle(style);
+        }
+        String opacityString = request.getParameter("opacity");
+        if(opacityString != null)
+        try{
+            Double opacity = Double.parseDouble(opacityString);
+            layer.setOpacity(opacity);
+        }
+        catch(RuntimeException e){
+            throw new RuntimeException("Opacity Out of Range");
+        }
+        String featureWmsId;
+        int featureIndex = 0;
+        while((featureWmsId = request.getParameter("features["+featureIndex+"][wmsId]")) != null){
+            if(featureWmsId.equals("")){
+                throw new RuntimeException("");
+            }
+            String featureName = request.getParameter("features["+featureIndex+"][name]");
+            if(featureName == null){
+                featureName = "";
+            }
+            layer.addFeature(new Feature(featureName,featureWmsId));
+            featureIndex += 1;
+            request.getServletContext().log("INDEX:"+featureIndex+",ID:"+featureWmsId);
+        }
+        
+        return layer;
+    }
+   
+    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

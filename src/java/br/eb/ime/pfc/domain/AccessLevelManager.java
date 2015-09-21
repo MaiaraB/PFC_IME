@@ -43,7 +43,7 @@ public class AccessLevelManager {
     }
     
     public void create(AccessLevel accessLevel) throws HibernateException{
-        this.session.save(accessLevel);
+        this.session.merge(accessLevel);
     }
     
     public AccessLevel getAccessLevel(String name) throws HibernateException{
@@ -51,7 +51,7 @@ public class AccessLevelManager {
     }
     
     public void update(AccessLevel accessLevel) throws HibernateException{
-        this.session.update(accessLevel);
+        this.session.merge(accessLevel);
     }
     
     public void delete(AccessLevel accessLevel) throws HibernateException{
