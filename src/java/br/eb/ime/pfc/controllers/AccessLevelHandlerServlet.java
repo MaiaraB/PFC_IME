@@ -23,8 +23,8 @@
  */
 package br.eb.ime.pfc.controllers;
 
-import br.eb.ime.pfc.domain.Layer;
-import br.eb.ime.pfc.domain.LayerManager;
+import br.eb.ime.pfc.domain.AccessLevel;
+import br.eb.ime.pfc.domain.AccessLevelManager;
 import br.eb.ime.pfc.hibernate.HibernateUtil;
 import flexjson.JSONSerializer;
 import java.io.IOException;
@@ -39,9 +39,9 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author arthurfernandes
  */
-@WebServlet(name = "LayerHandlerServlet", urlPatterns = {"/layer-handler"})
-public class LayerHandlerServlet extends HttpServlet {
-    
+@WebServlet(name = "AccessLevelHandlerServlet", urlPatterns = {"/access-level-handler"})
+public class AccessLevelHandlerServlet extends HttpServlet {
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -55,11 +55,11 @@ public class LayerHandlerServlet extends HttpServlet {
             throws ServletException, IOException {
         final String action = request.getParameter("action");
         if(action!=null){
-            final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+            final AccessLevelManager accessLevelManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
             
             if(action.equalsIgnoreCase("update")){
                 
-                request.getServletContext().log("JSONOBJECT:"+request.getParameter("features[0][name]"));
+                //request.getServletContext().log("JSONOBJECT:"+request.getParameter("features[0][name]"));
                 response.getWriter().print("OK");
                 response.getWriter().flush();
             }
@@ -73,13 +73,13 @@ public class LayerHandlerServlet extends HttpServlet {
                 response.getWriter().flush();
             }
             else if(action.equalsIgnoreCase("readAll")){
-                final List<Layer> allLayers = layerManager.getAllLayers();
+                final List<AccessLevel> accessLevels = accessLevelManager.readAll();
                 JSONSerializer serializer = new JSONSerializer();
                 final StringBuilder jsonLayersBuilder = new StringBuilder();
                 
                 serializer.rootName("objects").
-                    include("features").
-                    exclude("*.class").serialize(allLayers,jsonLayersBuilder);
+                    include("layers").
+                    exclude("*.class").serialize(accessLevels,jsonLayersBuilder);
                 
                 response.setContentType("application/json");
                 response.getWriter().println(jsonLayersBuilder.toString());

@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package br.eb.ime.pfc.controllers;
+package br.eb.ime.pfc.domain;
 
-import br.eb.ime.pfc.domain.Layer;
-import br.eb.ime.pfc.domain.LayerManager;
 import br.eb.ime.pfc.hibernate.HibernateUtil;
 import flexjson.JSONSerializer;
+import flexjson.TypeContext;
+import flexjson.transformer.AbstractTransformer;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -39,9 +39,9 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author arthurfernandes
  */
-@WebServlet(name = "LayerHandlerServlet", urlPatterns = {"/layer-handler"})
-public class LayerHandlerServlet extends HttpServlet {
-    
+@WebServlet(name = "UserHandlerServlet", urlPatterns = {"/user-handler"})
+public class UserHandlerServlet extends HttpServlet {
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -55,11 +55,11 @@ public class LayerHandlerServlet extends HttpServlet {
             throws ServletException, IOException {
         final String action = request.getParameter("action");
         if(action!=null){
-            final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+            final UserManager userManager = new UserManager(HibernateUtil.getCurrentSession());
             
             if(action.equalsIgnoreCase("update")){
                 
-                request.getServletContext().log("JSONOBJECT:"+request.getParameter("features[0][name]"));
+                //request.getServletContext().log("JSONOBJECT:"+request.getParameter("features[0][name]"));
                 response.getWriter().print("OK");
                 response.getWriter().flush();
             }
@@ -73,13 +73,21 @@ public class LayerHandlerServlet extends HttpServlet {
                 response.getWriter().flush();
             }
             else if(action.equalsIgnoreCase("readAll")){
-                final List<Layer> allLayers = layerManager.getAllLayers();
+                final List<User> users = userManager.readAll();
                 JSONSerializer serializer = new JSONSerializer();
                 final StringBuilder jsonLayersBuilder = new StringBuilder();
                 
-                serializer.rootName("objects").
-                    include("features").
-                    exclude("*.class").serialize(allLayers,jsonLayersBuilder);
+                serializer.rootName("objects").transform(new AbstractTransformer(){
+                    @Override
+                    public void transform(Object object) {
+                        if(object instanceof AccessLevel){
+                            AccessLevel accessLevel = (AccessLevel) object;
+                            this.getContext().writeQuoted(accessLevel.getName());
+                        }
+                    }
+                }, "accessLevel").
+                    exclude("*.class").
+                    serialize(users,jsonLayersBuilder);
                 
                 response.setContentType("application/json");
                 response.getWriter().println(jsonLayersBuilder.toString());

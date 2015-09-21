@@ -18,7 +18,8 @@
         <script src="${pageContext.request.contextPath}/resources/bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
         <!--Font Awesome-->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/font-awesome-4.4.0/css/font-awesome.min.css"/>
-        
+        <!--Bootbox-->
+        <script src="${pageContext.request.contextPath}/resources/js/bootbox.min.js"></script>
         <script type="text/javascript">
             $(document).ready(function(){
                 //Create Namespace
@@ -68,18 +69,19 @@
                     }
                 };
                 
-                WMSCRUD.ObjectHandler.prototype.requestAction = function(requestURL,actionSubject,data,successCallBack){
+                WMSCRUD.ObjectHandler.prototype.requestAction = function(requestURL,actionSubject,dataToSend,successCallBack){
                     actionSubject.state = this.ACTIONSUBJECTSTATE.UNDEFINED;
                     var self = this;
                     $.ajax({
                        type : 'POST',
                        url : requestURL,
                        async : true,
-                       data : data || "",
+                       data : dataToSend || "",
                        timeout : self.REQUESTTIMEOUT
-                    }).done(function(data){
+                    }).done(function(data,textStatus,jqXHR){
+                        console.log(data);
                        actionSubject.state = self.ACTIONSUBJECTSTATE.OK;
-                       successCallBack(self,data);
+                       successCallBack(self,data,textStatus,jqXHR);
                     }).fail(function(jqXHR,textStatus){
                        if(textStatus === 'timeout'){
                            actionSubject.state = self.ACTIONSUBJECTSTATE.TIMEOUT;
@@ -152,7 +154,8 @@
                                 var objectKeySelector = "." + self.viewIdPreffix + "-object-"+key;
                                 if($.isArray(loadedObject[key])){
                                     var nestedObjectsArray = loadedObject[key];
-                                    var templateView = self.objectDiv.find("."+self.viewIdPreffix+"-nested-template-"+key).first();
+                                    var templateClass = self.viewIdPreffix+"-nested-template-"+key;
+                                    var templateView = self.objectDiv.find("."+ templateClass).first();
                                     var nestedObjectView = self.objectDiv.find(objectKeySelector).first();
                                     nestedObjectView.empty();
                                     if(nestedObjectsArray.length > 0){
@@ -161,6 +164,8 @@
                                            for(;i<ii;i++){
                                                 var nestedObject = nestedObjectsArray[i];
                                                 var newElement = templateView.clone();
+                                                newElement.removeClass(templateClass);
+                                                newElement.addClass(self.viewIdPreffix+"-nested-copy-"+key);
                                                 for(var param in nestedObject){
                                                    newElement.find(objectKeySelector+"-"+param).val(nestedObject[param]);
                                                 }
@@ -168,7 +173,6 @@
                                                 nestedObjectView.append(newElement);
                                            }
                                        }
-
                                     }
                                 }
                                 else{
@@ -187,6 +191,7 @@
                     var self = this;
                     this.save.state = this.ACTIONSUBJECTSTATE.UNDEFINED;
                     var objectSave = this.initializeObject(self);
+                    self.objectSave = objectSave;
                     if(!this.obeyRestrictions(objectSave)){
                         console.log("Object does not obey restrictions");
                         this.save.state = this.ACTIONSUBJECTSTATE.ERROR;
@@ -201,7 +206,7 @@
                         self.notify(self.save);
                     }
                     var saveURL = this.url + "?action=" + this.ACTIONS.ADD;
-                    var successCallBack = function(data){
+                    var successCallBack = function(self,data){
                         if(typeof data !== 'undefined' && data === self.DATARESPONSESTATE.OK){
                             self.save.state = self.ACTIONSUBJECTSTATE.OK;
                         }
@@ -210,13 +215,14 @@
                         }
                     };
                     
-                    this.requestAction(saveURL,self.save,objectSave,successCallBack);
+                    this.requestAction(saveURL,self.add,objectSave,successCallBack);
                 };
                 
                 WMSCRUD.ObjectHandler.prototype.save = function(){
                     var self = this;
                     this.save.state = this.ACTIONSUBJECTSTATE.UNDEFINED;
                     var objectSave = this.initializeObject(self);
+                    self.objectSave = objectSave;
                     if(!this.obeyRestrictions(objectSave)){
                         console.log("Object does not obey restrictions");
                         this.save.state = this.ACTIONSUBJECTSTATE.ERROR;
@@ -231,7 +237,7 @@
                         self.notify(self.save);
                     }
                     var saveURL = this.url + "?action=" + this.ACTIONS.SAVE;
-                    var successCallBack = function(data){
+                    var successCallBack = function(self,data){
                         if(typeof data !== 'undefined' && data === self.DATARESPONSESTATE.OK){
                             self.save.state = self.ACTIONSUBJECTSTATE.OK;
                         }
@@ -247,7 +253,7 @@
                     var self = this;
                     self.delete.state = this.ACTIONSUBJECTSTATE.UNDEFINED;        
                     var deleteURL = this.url + "?action=" + this.ACTIONS.DELETE + "&" + this.idField + "=" + objId;
-                    var successCallBack = function(data){
+                    var successCallBack = function(self,data){
                         if(typeof data !== 'undefined' && data === self.DATARESPONSESTATE.OK){
                             self.delete.state = self.ACTIONSUBJECTSTATE.OK;
                         }
@@ -288,7 +294,7 @@
                                     if(self.mappingObject[key].length > 0){
                                         var templateNested = self.mappingObject[key][0];
                                         var nestedSelector = "."+self.viewIdPreffix+"-object-"+key;
-                                        var templateSelector = "."+self.viewIdPreffix+"-nested-template-"+key;
+                                        var templateSelector = "."+self.viewIdPreffix+"-nested-copy-"+key;
                                         var nestedObjectsView = self.objectDiv.find(nestedSelector);
                                         var nestedObjectsViewElements = nestedObjectsView.find(templateSelector);
                                         nestedObjectsViewElements.each(function(index){
@@ -310,6 +316,26 @@
                     return objectInit;
                 };
                 
+                WMSCRUD.ObjectHandler.prototype.clearObjectDiv = function(self){
+                    if(typeof self === 'undefined'){
+                        var self = this;
+                    }
+                    if(typeof self.objectDiv !== 'undefined' && self.objectDiv.length > 0){ 
+                        for(var key in self.mappingObject){
+                            var selector = "."+self.viewIdPreffix+"-object-"+key;
+                            if(key!==null){
+                                if($.isArray(self.mappingObject[key])){
+                                        var nestedObjectsView = self.objectDiv.find(selector);
+                                        nestedObjectsView.empty();
+                                    }
+                                else{
+                                    self.objectDiv.find(selector).val("");
+                                }
+                            }
+                        }      
+                    }
+                };
+                
                 WMSCRUD.ObjectHandler.prototype.mapping = function(objId){
                     this.mappingObject = {};
                 };
@@ -320,6 +346,7 @@
                     this.url = "layer-handler";
                     this.objectDiv = objectDiv;
                     this.objectListDiv = objectListDiv;
+                    this.saveState = true;
                 };
                 LayersHandler.prototype = Object.create(WMSCRUD.ObjectHandler.prototype);
                 LayersHandler.constructor = LayersHandler;
@@ -331,60 +358,199 @@
                     return true;
                 };
                 
-                var layersPanel = $("#layers-panel");
-                var layersPanelHeading = layersPanel.find(".panel-heading").first();
-                var layersPanelBody = layersPanel.find(".panel-body").first();
-                var layersObjectListDiv = layersPanel.find(".object-list-div").first();
-                var layersObjectDiv = layersPanel.find(".object-div").first();
-                var layersAddButton = layersPanel.find(".handler-add-button").first();
-                var layersSaveButton = layersPanel.find(".handler-save-button").first();
-                var layersDeleteButton = layersPanel.find(".handler-delete-button").first();
-                var layerHandler = new LayersHandler(layersObjectListDiv,layersObjectDiv);
+                function AccessLevelHandler(objectListDiv,objectDiv){
+                    WMSCRUD.ObjectHandler.call(this);
+                    this.idField = "name";
+                    this.url = "access-level-handler";
+                    this.objectDiv = objectDiv;
+                    this.objectListDiv = objectListDiv;
+                    this.saveState = true;
+                };
+                AccessLevelHandler.prototype = Object.create(WMSCRUD.ObjectHandler.prototype);
+                AccessLevelHandler.constructor = LayersHandler;
+                AccessLevelHandler.prototype.mapping = function(){
+                    return { name : "",layers: [{wmsId :""}]};
+                };
+                AccessLevelHandler.prototype.obeyRestrictions = function(self,matchObject){
+                    return true;
+                };
                 
-                layersPanelBody.hide();
-                layersPanelHeading.click(function(event){
-                   if(!layersPanelBody.is(":visible")){
-                     layerHandler.readObjs();
-                   }
-                   else{
-                     layersObjectDiv.hide();
-                   }
-                   layersPanelBody.slideToggle(300); 
+                function UserHandler(objectListDiv,objectDiv){
+                    WMSCRUD.ObjectHandler.call(this);
+                    this.idField = "username";
+                    this.url = "user-handler";
+                    this.objectDiv = objectDiv;
+                    this.objectListDiv = objectListDiv;
+                    this.saveState = true;
+                };
+                UserHandler.prototype = Object.create(WMSCRUD.ObjectHandler.prototype);
+                UserHandler.constructor = LayersHandler;
+                UserHandler.prototype.mapping = function(){
+                    return { username : "",password: "", accessLevel : [{name : ""}]};
+                };
+                UserHandler.prototype.obeyRestrictions = function(self,matchObject){
+                    return true;
+                };
+                
+                var initializeUIPanel = function(panel,HandlerClass,nestedElement){
+                    var panelHeading = panel.find(".panel-heading").first();
+                    var panelBody = panel.find(".panel-body").first();
+                    var objectListDiv = panel.find(".object-list-div").first();
+                    var objectDiv = panel.find(".object-div").first();
+                    var addSelect = panel.find(".handler-add-select").first();
+                    var nestedAddSelect = panel.find(".handler-nested-add-select-"+nestedElement);
+                    var addSaveButton = panel.find(".handler-add-save").first();
+                    var deleteButton = panel.find(".handler-delete-current").first();
+                    var objectHandler = new HandlerClass(objectListDiv,objectDiv);
+                
+                    panelBody.hide();
+                    panelHeading.click(function(event){
+                       if(!panelBody.is(":visible")){
+                         objectHandler.readObjs();
+                       }
+
+                       panelBody.slideToggle(300); 
+
+                    });
+                    var changeSaveAddView = function(){
+                    if(objectHandler.saveState){
+                        addSaveButton.removeClass("handler-add-current"); 
+                        addSaveButton.addClass("handler-save-current");
+                        addSaveButton.text("Salvar");
+                    }
+                    else{
+                        addSaveButton.removeClass("handler-save-current");
+                        addSaveButton.addClass("handler-add-current"); 
+                        addSaveButton.text("Adicionar");
+                    }
+                };
+                
+                addSelect.click(function(event){
+                    objectHandler.clearObjectDiv();
+                    objectHandler.saveState = false;
+                    changeSaveAddView();
                 });
                 
-                layersAddButton.click(function(event){
-                    layerHandler.add();
-                });
-                layersSaveButton.click(function(event){
-                    layerHandler.save();
-                });
-                layersDeleteButton.click(function(event){
-                   layerHandler.deleteCurrent(); 
-                });
-                layerHandler.attach(layerHandler.loadObj,function(state){
-                    layersSaveButton.show();
-                    layersAddButton.hide();
+                var nestedElementDeleteFunction = function(){
+                    var layersNestedDeleteCurrent = objectHandler.objectDiv.find(".handler-nested-delete-current");
+                    $.each(layersNestedDeleteCurrent,function(index){
+                        layersNestedDeleteCurrent.click(function(event){
+                            $(this).parents(".handler-nested-copy-"+nestedElement).first().remove();
+                        });
+                    });
+                };
+                
+                nestedAddSelect.click(function(event){
+                    var handlerNested = objectHandler.objectDiv.find(".handler-object-"+nestedElement).first();
+                    var template = objectHandler.objectDiv.find(".handler-nested-template-"+nestedElement).first();
+                    var copy = template.clone();
+                    copy.removeClass("handler-nested-template-"+nestedElement);
+                    copy.addClass("handler-nested-copy-"+nestedElement);
+                    copy.show();
+                    handlerNested.append(copy);
+                    nestedElementDeleteFunction();
                 });
                 
-                layerHandler.attach(layerHandler.readObjs,function(state){
-                    if(state === layerHandler.ACTIONSUBJECTSTATE.OK){
-                        var clickFunction = function(event){
+                addSaveButton.click(function(event){
+                    objectHandler.add();
+                });
+                deleteButton.click(function(event){
+                   objectHandler.deleteCurrent(); 
+                });
+                objectHandler.attach(objectHandler.loadObj,function(state){
+                    nestedElementDeleteFunction();
+                });
+                
+                objectHandler.attach(objectHandler.loadObj,function(state){
+                    objectHandler.saveState = true;
+                    changeSaveAddView();
+                });
+                
+                objectHandler.attach(objectHandler.readObjs,function(state){
+                    if(state === objectHandler.ACTIONSUBJECTSTATE.OK){
+                        var loadObjFunction = function(event){
                             var loadedObject = $(this).parents(".handler-template-obj").first().get(0).loadedObject;
                             if(typeof loadedObject === 'undefined'){
                                 console.log("Internal error, no object to load");
                             }
                             else{
-                                layerHandler.loadObj(layerHandler,loadedObject);
+                                objectHandler.loadObj(objectHandler,loadedObject);
                             }  
                         };
-                        var layerIds = layerHandler.objectListDiv.find(".handler-id-wmsId");
-                        layerIds.click(clickFunction);
-                        $.each(layerIds,function(){
-                            $(this).parent().find(".glyphicon-pencil").click(clickFunction);
-                        });
-                        
+                        var deleteCurrentFunction = function(event){
+                            var template= $(this).parents(".handler-template-obj").first();
+                            var objId = template.find(".handler-id-"+objectHandler.idField).first().text();
+                            objectHandler.delete.viewObj = template;
+                            console.log(objectHandler.delete.viewObj);
+                            objectHandler.delete(objId);
+                            
+                        };
+                        var objectIds = objectHandler.objectListDiv.find(".handler-id-"+objectHandler.idField);
+                        objectIds.click(loadObjFunction);
+                        $.each(objectIds,function(){
+                            var templateParent = $(this).parents(".handler-template-obj").first();
+                            templateParent.find(".handler-load-current").click(loadObjFunction);
+                            templateParent.find(".handler-delete-selected").click(deleteCurrentFunction);
+                        });   
                     }
                 });
+                
+                objectHandler.attach(objectHandler.delete,function(state){
+                   if(state === objectHandler.ACTIONSUBJECTSTATE.OK){
+                       if(typeof objectHandler.delete.viewObj !== 'undefined'){
+                           console.log('delete');
+                           $(objectHandler.delete.viewObj).remove();
+                       }
+                   } 
+                });
+                
+                objectHandler.attach(objectHandler.add,function(state){
+                    if(state === objectHandler.ACTIONSUBJECTSTATE.OK){
+                        if(typeof objectHandler.objectSave !== 'undefined' && typeof objectHandler.objectSave !== null){
+                            var template = objectHandler.objectListDiv.siblings(".handler-template-obj").first();
+                            var newElement = template.clone(true);
+                            newElement.show();
+                            newElement.find(".handler-id-"+objectHandler.idField) 
+                                          .text(objectHandler.objectSave[objectHandler.idField]);
+                            newElement.appendTo(objectHandler.objectListDiv);              
+                            objectHandler.objectSave = undefined;
+                            objectHandler.readObjs();      
+                        }
+                    }
+                });
+                
+                var errorMessageContainer = $("#error-message-container");
+                
+                /*
+                errorMessageContainer.draggable({
+                   handler: errorMessageContainer.find(".modal-header") 
+                });*/
+                var alertMessage = function(title,message,importance){    
+                    errorMessageContainer.find(".modal-header")
+                            .removeClass("modal-danger","modal-success","modal-info","modal-warning")
+                            .addClass("modal-"+importance);
+                    errorMessageContainer.find("#error-message-title").text(title);
+                    errorMessageContainer.find("#error-message-body").text(message);
+                    errorMessageContainer.modal({backdrop: false});
+                };
+                alertMessage.importance = {WARNING : 'warning',SUCCESS : 'success',INFO : 'info',DANGER : 'danger'};
+                var actionConfirmation = function(state){
+                    alert("ok");
+                };
+                
+                objectHandler.attach(objectHandler.add,actionConfirmation);
+                objectHandler.attach(objectHandler.save,actionConfirmation);
+                objectHandler.attach(objectHandler.delete,actionConfirmation);
+                
+            };
+            
+                var layersPanel = $("#layers-panel");
+                var accessLevelPanel = $("#access-level-panel");
+                var usersPanel = $("#users-panel");
+                initializeUIPanel(layersPanel,LayersHandler,"features");
+                initializeUIPanel(accessLevelPanel,AccessLevelHandler,"layers");
+                initializeUIPanel(usersPanel,UserHandler,"accessLevel");
+                
             });
         </script>
         <style>
@@ -392,22 +558,109 @@
                 cursor : pointer;
             }
             .trash { color:rgb(209, 91, 71); }
-            .okglyph {font-size : 25px;color: #006699}
-            .panel-footer .pagination { margin: 0; }
+            //.okglyph {font-size : 25px;color: #006699}
+            .glyphicon-plus-sign {font-size : 35px;color: #009966}
+            
             .panel .glyphicon,.list-group-item .glyphicon { margin-right:5px; }
             .panel-body .radio, .checkbox { display:inline-block;margin:0px; }
             .panel-body input[type=checkbox]:checked + label { text-decoration: line-through;color: rgb(128, 144, 160); }
             .list-group-item:hover, a.list-group-item:focus {text-decoration: none;background-color: rgb(245, 245, 245);}
             .list-group { margin-bottom:0px; }
             .input-group {margin-bottom:15px;}
-            .glyphicon-plus-sign {font-size : 35px;color: #009966}
+            
         </style>
     </head>
     <body>
         <div class="container container-fluid">
+            <!--LAYERS-->
             <div id="layers-panel" class="panel panel-success">
                 <div class="panel-heading clickable">
                     <span class="glyphicon glyphicon-list"></span>Camadas
+                </div>
+                <div class="row panel-body">
+                    <div class="col-md-5">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span class="glyphicon glyphicon-list"></span>Configuração
+                                <div class="pull-right action-buttons">
+                                    <div class="btn-group pull-right">
+                                        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+                                        <span class="glyphicon glyphicon-cog" style="margin-right: 0px;"></span>
+                                        </button>
+                                        <ul class="dropdown-menu slidedown sortable">
+                                            <li><a href="" class="trash"><span class="glyphicon glyphicon-trash"></span>Deletar</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <div class="list-group object-list-div">
+                                </div>
+                                <div class="text-center handler-add-select clickable"><span class="glyphicon glyphicon-plus-sign"></span></div>
+                                <div class="handler-template-obj list-group-item" style="display:none">
+                                        
+                                        <input type="checkbox" class="checkbox"/>
+                                        <label for="checkbox" class="clickable handler-id-wmsId"></label>
+                                        
+                                        <div class="pull-right action-buttons">
+                                            <a href="#" class="handler-load-current"><span class="glyphicon glyphicon-pencil"></span></a>
+                                            <a href="#" class="trash handler-delete-selected"><span class="glyphicon glyphicon-trash"></span></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            
+                            
+                            <div class="panel panel-default object-div">
+                                <div class="panel-heading input-group">
+                                        <input type="text" class="pull-left form-control handler-object-wmsId" placeholder="wmsId"/>
+                                        <span class="input-group-addon clickable handler-save-current handler-add-save">Salvar</span>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="input-group">
+                                        <label for="handler-object-name" class="input-group-addon">Nome:</label>
+                                        <input type="text" class="form-control handler-object-name" placeholder="Nome"/>
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="handler-object-name" class="input-group-addon">Estilo:</label>
+                                        <input type="text" class="form-control handler-object-style" placeholder="Estilo">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="handler-object-name" class="input-group-addon">Opacidade:</label>
+                                        <input type="" class="form-control handler-object-opacity" placeholder="Opacidade">
+                                    </div>     
+                                    <div class="panel panel-danger">
+                                        <div class="panel-heading">
+                                            Features
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="handler-object-features list-group"></div>
+                                            <div class="text-center handler-nested-add-select-features clickable"><span class="glyphicon glyphicon-plus-sign"></span></div>
+                                            <div class=""></div>
+                                            <div class="handler-nested-template-features list-group-item" style="display:none">
+                                                <a class="trash handler-nested-delete-current clickable"><span class="glyphicon glyphicon-trash"></span></a>
+                                                <div class="input-group">
+                                                    <span for="handler-object-features-wmsId" class="input-group-addon">wmsId:</span>
+                                                    <input type="text" class="form-control handler-object-features-wmsId" placeholder="wmsId"/>
+                                                </div>
+                                                <div class="input-group">
+                                                    <span for="handler-object-features-wmsId" class="input-group-addon">Nome:</span>
+                                                    <input type="text" class="form-control handler-object-features-name" placeholder="Nome"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>   
+            <!--ACCESS-LEVEL-->
+            <div id="access-level-panel" class="panel panel-primary">
+                <div class="panel-heading clickable">
+                    <span class="glyphicon glyphicon-list"></span>Níveis de Acesso
                 </div>
                 <div class="row panel-body">
                     <div class="col-md-5">
@@ -433,11 +686,11 @@
                                 <div class="handler-template-obj list-group-item" style="display:none">
                                         
                                         <input type="checkbox" class="checkbox"/>
-                                        <label for="checkbox" class="clickable handler-id-wmsId"></label>
+                                        <label for="checkbox" class="clickable handler-id-name"></label>
                                         
                                         <div class="pull-right action-buttons">
-                                            <a href="#"><span class="glyphicon glyphicon-pencil"></span></a>
-                                            <a href="#" class="trash"><span class="glyphicon glyphicon-trash"></span></a>
+                                            <a href="#" class="handler-load-current"><span class="glyphicon glyphicon-pencil"></span></a>
+                                            <a href="#" class="trash handler-delete-selected"><span class="glyphicon glyphicon-trash"></span></a>
                                         </div>
                                     </div>
                                 </div>
@@ -445,61 +698,118 @@
                         </div>
                         <div class="col-md-6">
                             <div class="panel panel-default object-div">
-                                <div class="panel-heading">
-                                        <input type="text" class="pull-left form-control handler-object-wmsId" placeholder="wmsId" style="max-width:90%;"/>
-                                        <a href="#" class="okglyph"><span class="glyphicon glyphicon-ok-sign"></span></a>
+                                <div class="panel-heading input-group">
+                                        <input type="text" class="pull-left form-control handler-object-name" placeholder="name"/>
+                                        <span class="input-group-addon clickable handler-save-current handler-add-save">Salvar</span>
                                 </div>
-                                <div class="panel-body">
-                                    <div class="input-group">
-                                        <label for="handler-object-name" class="input-group-addon">Nome:</label>
-                                        <input type="text" class="form-control handler-object-name" placeholder="Nome"/>
-                                    </div>
-                                    <div class="input-group">
-                                        <label for="handler-object-name" class="input-group-addon">Estilo:</label>
-                                        <input type="text" class="form-control handler-object-style" placeholder="Estilo">
-                                    </div>
-                                    <div class="input-group">
-                                        <label for="handler-object-name" class="input-group-addon">Opacidade:</label>
-                                        <input type="" class="form-control handler-object-opacity" placeholder="Opacidade">
-                                    </div>     
-                                    <div class="panel panel-primary">
+                                <div class="panel-body">    
+                                    <div class="panel panel-success">
                                         <div class="panel-heading">
-                                            Features
+                                            Camadas
                                         </div>
                                         <div class="panel-body">
-                                            <div class="handler-object-features list-group"></div>
-                                            <div class="text-center handler-objects-features-add-select clickable"><span class="glyphicon glyphicon-plus-sign"></span></div>
+                                            <div class="handler-object-layers list-group"></div>
+                                            <div class="text-center handler-nested-add-select-layers clickable"><span class="glyphicon glyphicon-plus-sign"></span></div>
                                             <div class=""></div>
-                                            <div class="handler-nested-template-features list-group-item" style="display:none">
-                                                <a href="" class="trash"><span class="glyphicon glyphicon-trash"></span></a>
+                                            <div class="handler-nested-template-layers list-group-item" style="display:none">
+                                                <a class="trash handler-nested-delete-current clickable"><span class="glyphicon glyphicon-trash"></span></a>
                                                 <div class="input-group">
-                                                    <span for="handler-object-features-wmsId" class="input-group-addon">wmsId:</span>
-                                                    <input type="text" class="form-control handler-object-features-wmsId" placeholder="wmsId"/>
-                                                </div>
-                                                <div class="input-group">
-                                                    <span for="handler-object-features-wmsId" class="input-group-addon">Nome:</span>
-                                                    <input type="text" class="form-control handler-object-features-name" placeholder="Nome"/>
+                                                    <span for="handler-object-layers-wmsId" class="input-group-addon">wmsId</span>
+                                                    <input type="text" class="form-control handler-object-layers-wmsId" placeholder="wmsId"/>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="panel-footer">
-                                <button class="text-capitalize handler-add-button">Adicionar</button>
-                                <button class="text-capitalize handler-save-button" style="display:none">Salvar</button>
-                                <button class="text-capitalize handler-delete-button">Deletar</button>
+                        </div>
+                    </div>
+            </div>   
+            
+            <!--USERS-->
+            
+            <div id="users-panel" class="panel panel-warning">
+                <div class="panel-heading clickable">
+                    <span class="glyphicon glyphicon-list"></span>Usuários
+                </div>
+                <div class="row panel-body">
+                    <div class="col-md-5">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span class="glyphicon glyphicon-list"></span>Configuração
+                                <div class="pull-right action-buttons">
+                                    <div class="btn-group pull-right">
+                                        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+                                        <span class="glyphicon glyphicon-cog" style="margin-right: 0px;"></span>
+                                        </button>
+                                        <ul class="dropdown-menu slidedown sortable">
+                                            <li><a href="" class="trash"><span class="glyphicon glyphicon-trash"></span>Deletar</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <div class="list-group object-list-div">
+                                    
+                                </div>
+                                <div class="text-center handler-add-select clickable"><span class="glyphicon glyphicon-plus-sign"></span></div>
+                                <div class="handler-template-obj list-group-item" style="display:none">
+                                        
+                                        <input type="checkbox" class="checkbox"/>
+                                        <label for="checkbox" class="clickable handler-id-username"></label>
+                                        
+                                        <div class="pull-right action-buttons">
+                                            <a href="#" class="handler-load-current"><span class="glyphicon glyphicon-pencil"></span></a>
+                                            <a href="#" class="trash handler-delete-selected"><span class="glyphicon glyphicon-trash"></span></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="panel panel-default object-div">
+                                <div class="panel-heading input-group">
+                                        <input type="text" class="pull-left form-control handler-object-username" placeholder="name"/>
+                                        <span class="input-group-addon clickable handler-save-current handler-add-save">Salvar</span>
+                                </div>
+                                <div class="panel-body">    
+                                    
+                                    <div class="input-group">
+                                        <label for="handler-object-name" class="input-group-addon">Nome:</label>
+                                        <input type="text" class="form-control handler-object-name" placeholder="Nome"/>
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="handler-object-name" class="input-group-addon">Senha</label>
+                                        <input type="text" class="form-control handler-object-password" placeholder="******">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="handler-object-name" class="input-group-addon">Email</label>
+                                        <input type="text" class="form-control handler-object-email" placeholder="email">
+                                    </div>     
+                                    <div class="input-group">
+                                        <label for="handler-object-name" class="input-group-addon">Telefone</label>
+                                        <input type="text" class="form-control handler-object-telnumber" placeholder="telefone">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="handler-object-name" class="input-group-addon">Telefone</label>
+                                        <input type="text" class="form-control handler-object-telnumber" placeholder="telefone">
+                                    </div>
+                                    <div class="panel panel-success">
+                                        <div class="panel-heading">
+                                            Nível de Acesso
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="input-group">
+                                                <label for="handler-object-accessLevel" class="input-group-addon">Nome:</label>
+                                                <input type="text" class="form-control handler-object-accessLevel" placeholder="nome">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                    
-                    
-                </div>
-
-            </div>
+            </div>  
         </div>
-        
-                    
     </body>
 </html>

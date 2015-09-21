@@ -44,7 +44,7 @@ import org.hibernate.context.internal.ManagedSessionContext;
  *
  * @author arthurfernandes
  */
-@WebFilter(filterName = "TransactionHandlerFilter", servletNames={"LoginServlet","ListLayersServlet","MapServlet","LayerHandlerServlet"})
+@WebFilter(filterName = "TransactionHandlerFilter", servletNames={"LoginServlet","ListLayersServlet","MapServlet","LayerHandlerServlet","AccessLevelHandlerServlet","UserHandlerServlet"})
 public class HibernateSessionRequestFilter implements Filter {
     
     private static final boolean debug = true;

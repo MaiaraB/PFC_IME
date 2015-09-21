@@ -1,6 +1,10 @@
 package br.eb.ime.pfc.domain;
 
+import java.util.Comparator;
+import java.util.List;
+import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 
 /*
@@ -50,5 +54,21 @@ public class UserManager {
     
     public void delete(User user) throws HibernateException{
         this.session.delete(user);
+    }
+    
+    public List<User> readAll() throws HibernateException{
+        final Query query = session.createQuery("from User");
+        final List<User> allUsers = query.list();
+        allUsers.sort(new Comparator<User>(){
+            @Override
+            public int compare(User o1, User o2) {
+                return o1.getUsername().compareTo(o2.getUsername());
+            }
+        });
+        
+        for(User user : allUsers){
+            Hibernate.initialize(user);
+        }
+        return allUsers;
     }
 }
