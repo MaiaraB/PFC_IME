@@ -200,10 +200,21 @@ mapControl.getFeatureInfo = function(evt,obj){
                             return;
                         }
 
-                        var features = olLayer.layerObj.features;
                         var featuresData = jsonData.features[0];
-                        var j,jj;
+                        var features = olLayer.layerObj.features;
                         
+                        //counting size of featuresData
+                        var key, count = 0;
+                        for(key in featuresData) {
+                          if(featuresData.hasOwnProperty(key)) {
+                            count++;
+                          } 
+                        }
+                        if (count === 0 || features.length === 0) {
+                            return false;
+                        }
+                        
+                        var j,jj;
                         var layerTable = $("<table></table>").addClass("table").addClass("");
                         var layerTableRowHeader = $("<tr></tr>");
                         layerTableRowHeader.append($("<th></th>").html(name).attr("rowspan",features.length));
@@ -214,7 +225,6 @@ mapControl.getFeatureInfo = function(evt,obj){
                                 layerTable.append(layerTableRowHeader);
                         }
                         layerTable.append(layerTableRowHeader);
-                        console.log(name);
                         
                         for(j = 1,jj = features.length;j<jj;j++){
                             featureValue = featuresData.properties[features[j].wmsId];
