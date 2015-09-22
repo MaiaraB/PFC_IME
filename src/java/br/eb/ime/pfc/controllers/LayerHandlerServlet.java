@@ -26,10 +26,15 @@ package br.eb.ime.pfc.controllers;
 import br.eb.ime.pfc.domain.Feature;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.LayerManager;
+import br.eb.ime.pfc.domain.ObjectDuplicateException;
+import br.eb.ime.pfc.domain.ObjectNotFoundException;
 import br.eb.ime.pfc.hibernate.HibernateUtil;
 import flexjson.JSONSerializer;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javax.persistence.RollbackException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -42,6 +47,23 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet(name = "LayerHandlerServlet", urlPatterns = {"/layer-handler"})
 public class LayerHandlerServlet extends HttpServlet {
+    private static final String OK_MESSAGE = "OK";
+    private static final String ERROR_MESSAGE = "ERROR";
+    private static final String DUPLICATE_MESSAGE = "DUPLICATE";
+    private static final String NOTFOUND_MESSAGE = "NOTFOUND";
+    public enum LAYER_ACTION{
+        DELETE,
+        UPDATE,
+        CREATE,
+        READALL
+    }
+    final static Map<String,LAYER_ACTION> LAYER_ACTION_MAPPING = new HashMap<>();
+    static{
+        LAYER_ACTION_MAPPING.put("delete", LAYER_ACTION.DELETE);
+        LAYER_ACTION_MAPPING.put("readAll", LAYER_ACTION.READALL);
+        LAYER_ACTION_MAPPING.put("update", LAYER_ACTION.UPDATE);
+        LAYER_ACTION_MAPPING.put("add", LAYER_ACTION.CREATE);
+    }
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -54,79 +76,124 @@ public class LayerHandlerServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        final String action = request.getParameter("action");
-        if(action!=null){
-            final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
-            
-            if(action.equalsIgnoreCase("update")){
-                try{
-                    final Layer layer = this.retrieveObject(request);
-                    layerManager.update(layer);
-                    response.getWriter().print("OK");
-                }
-                catch(RuntimeException e){
-                    response.getWriter().print("ERROR");
-                }
-                finally{
-                    response.getWriter().flush();
-                }
-            }
-            else if(action.equalsIgnoreCase("add")){
-                try{
-                    final Layer layer = this.retrieveObject(request);
-                    if(layerManager.getLayerById(layer.getWmsId())!=null){
-                        response.getWriter().print("DUPLICATE");
-                    }
-                    else{
-                        layerManager.create(layer);
-                        response.getWriter().print("OK");
-                    }
-                }
-                catch(RuntimeException e){
-                    response.getWriter().print("ERROR");
-                }
-                finally{
-                    response.getWriter().flush();
+        final String actionString = request.getParameter("action");
+        if(actionString!=null){
+            //final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+            final LAYER_ACTION action = LAYER_ACTION_MAPPING.get(actionString);
+            if(action!=null){
+                switch(action){
+                    case READALL:
+                        request.getServletContext().log("READALL");
+                        this.readAll(request, response);
+                        break;
+                    case UPDATE:
+                        request.getServletContext().log("UPDATE");
+                        this.update(request,response);
+                        break;
+                    case CREATE:
+                        request.getServletContext().log("CREATE");
+                        this.create(request,response);
+                        break;
+                    case DELETE:
+                        request.getServletContext().log("DELETE");
+                        this.delete(request,response);
+                        break;
+                    default:
+                        response.sendError(404);
+                        break;
                 }
             }
-            else if(action.equalsIgnoreCase("delete")){
-                final String wmsId = request.getParameter("wmsId");
-                try{
-                    final Layer layer = layerManager.getLayerById(wmsId);
-                    layerManager.delete(layer);
-                    response.getWriter().print("OK");
-                }
-                catch(RuntimeException e){
-                    response.getWriter().print("ERROR");
-                }
-                finally{
-                    response.getWriter().flush();
-                }
-            }
-            else if(action.equalsIgnoreCase("readAll")){
-                final List<Layer> allLayers = layerManager.getAllLayers();
-                JSONSerializer serializer = new JSONSerializer();
-                final StringBuilder jsonLayersBuilder = new StringBuilder();
-                
-                serializer.rootName("objects").
-                    include("features").
-                    exclude("*.class").serialize(allLayers,jsonLayersBuilder);
-                
-                response.setContentType("application/json");
-                response.getWriter().println(jsonLayersBuilder.toString());
-                response.getWriter().flush();
-            }
-            else{
-                response.sendError(404);
-            }
+        }
+        else{
+            response.sendError(404);
         }
     }
     
-    public Layer retrieveObject(HttpServletRequest request){
+    public void readAll(HttpServletRequest request,HttpServletResponse response) throws IOException{
+        final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+        final List<Layer> allLayers = layerManager.readAll();
+        JSONSerializer serializer = new JSONSerializer();
+        final StringBuilder jsonLayersBuilder = new StringBuilder();
+
+        serializer.rootName("objects").
+            include("features").
+            exclude("*.class").serialize(allLayers,jsonLayersBuilder);
+                
+        response.setContentType("application/json");
+        response.getWriter().println(jsonLayersBuilder.toString());
+        response.getWriter().flush();
+    }
+    
+    public void update(HttpServletRequest request,HttpServletResponse response) throws IOException{
+        final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+        try{
+            Layer layer = this.retrieveObjectFromRequest(request);
+            layerManager.update(layer);
+            response.getWriter().print(OK_MESSAGE);
+        }
+        catch(ObjectNotFoundException e){
+            response.getWriter().print(NOTFOUND_MESSAGE);
+        }
+        catch(RuntimeException e){
+            response.getWriter().print(ERROR_MESSAGE);
+        }
+        finally{
+            response.getWriter().flush();
+        }
+    }
+    
+    public void create(HttpServletRequest request,HttpServletResponse response) throws IOException{
+        final String wmsId = request.getParameter("wmsId");
+        if(wmsId != null){
+            final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+            try{
+                Layer layer = this.retrieveObjectFromRequest(request);
+                layerManager.create(layer);
+                response.getWriter().print(OK_MESSAGE);
+            }
+            catch(ObjectDuplicateException e){
+                response.getWriter().print(DUPLICATE_MESSAGE);
+            }
+            catch(RollbackException e){
+                response.getWriter().print(ERROR_MESSAGE);
+            }
+            finally{
+                response.getWriter().flush();
+            }
+        }
+        else{
+            response.getWriter().print(ERROR_MESSAGE);
+        }
+    }
+    
+    public void delete(HttpServletRequest request,HttpServletResponse response) throws IOException{
+        final String wmsId = request.getParameter("wmsId");
+        if(wmsId != null){
+            final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+            try{
+                layerManager.delete(wmsId);
+                response.getWriter().print(OK_MESSAGE);
+            }
+            catch(ObjectNotFoundException e){
+                response.getWriter().print(NOTFOUND_MESSAGE);
+            }
+            catch(RuntimeException e){
+                response.getWriter().print(ERROR_MESSAGE);
+            }
+            finally{
+                response.getWriter().flush();
+            }
+        }
+        else{
+            response.getWriter().print(ERROR_MESSAGE);
+        }
+    }
+    
+    public Layer retrieveObjectFromRequest(HttpServletRequest request) throws ObjectNotFoundException{
         String wmsId = request.getParameter("wmsId");
         String name = request.getParameter("name");
         if(name == null || wmsId == null || wmsId.equals("")){
-            throw new RuntimeException("No id or name attribute specified");
+            throw new ObjectNotFoundException("No id or name attribute specified");
         }
         final Layer layer = new Layer(name,wmsId);
         
@@ -157,11 +224,8 @@ public class LayerHandlerServlet extends HttpServlet {
             featureIndex += 1;
             request.getServletContext().log("INDEX:"+featureIndex+",ID:"+featureWmsId);
         }
-        
         return layer;
     }
-   
-    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -200,5 +264,4 @@ public class LayerHandlerServlet extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
 }

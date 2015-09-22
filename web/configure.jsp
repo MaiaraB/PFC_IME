@@ -430,7 +430,7 @@
                 UserHandler.prototype = Object.create(WMSCRUD.ObjectHandler.prototype);
                 UserHandler.constructor = UserHandler;
                 UserHandler.prototype.mapping = function(){
-                    return { username : "",password: "", accessLevel : [{name : ""}]};
+                    return { username : "",password: "", accessLevel : "",telephone : "",email: "",name:""};
                 };
                 UserHandler.prototype.obeyRestrictions = function(matchObject){
                     if(typeof matchObject === 'undefined'){

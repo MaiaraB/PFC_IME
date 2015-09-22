@@ -1,8 +1,9 @@
 package br.eb.ime.pfc.domain;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -13,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -34,13 +36,15 @@ public class AccessLevel implements Serializable,Cloneable{
     @Column(name = "ACCESSLEVEL_ID")
     private final String name;
     
-    @ManyToMany(fetch=FetchType.EAGER,cascade = CascadeType.ALL)
-    @JoinTable(name = "LAYER_ACCESSLEVEL",
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(name = "ACCESSLEVEL_LAYER",
                 joinColumns = {@JoinColumn(name="ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")},
-                inverseJoinColumns = {@JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID")}
-    )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+                inverseJoinColumns = {@JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID",nullable = false)})
+    //@OrderColumn(name = "layer_index",updatable = true,insertable = true,nullable = false)
     private final List<Layer> layers;
     
+    @OneToMany(fetch=FetchType.LAZY,cascade = CascadeType.ALL,mappedBy="accessLevel")
+    private final List<User> users;
     /*
     * Representation Invariant:
     * name must not be empty
@@ -58,6 +62,7 @@ public class AccessLevel implements Serializable,Cloneable{
     public AccessLevel(String name){
         this.name = name;
         this.layers = new LinkedList<>();
+        this.users = new ArrayList<>();
         checkRep();
     }
     
@@ -66,6 +71,7 @@ public class AccessLevel implements Serializable,Cloneable{
      */
     protected AccessLevel(){
         name = null;
+        this.users = new ArrayList<>();
         this.layers = new LinkedList<>();
     }
     
@@ -92,6 +98,28 @@ public class AccessLevel implements Serializable,Cloneable{
      */
     public List<Layer> getLayers(){
         return Collections.unmodifiableList(layers);
+    }
+    
+    public void addUser(User user){
+        if(this.containsUser(user.getUsername())){
+            throw new UserRepetitionException("Access Level already contains user with the specified username");
+        }
+        else{
+            this.users.add(user);
+        }
+    }
+    
+    public Collection<User> getUsers(){
+        return Collections.unmodifiableList(users);
+    }
+    
+    public boolean containsUser(String username){
+        for(User user : this.users){
+            if(user.getUsername().equalsIgnoreCase(username)){
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
@@ -142,6 +170,25 @@ public class AccessLevel implements Serializable,Cloneable{
          * The message that specify the error.
          */
         public LayerRepetitionException(String message){
+            super(message);
+        }
+    }
+    
+    /**
+     * This exception is triggered when one tries to add a layer to an Access Level, 
+     * and the layer has the same wmsId of a layer already present in the 
+     * AccessLevel.
+     */
+    public static class UserRepetitionException extends RuntimeException{
+        
+        private static final long serialVersionUID = 1L;
+        
+        /**
+         * Creates a LayerRepetitionException with a detail message.
+         * @param message 
+         * The message that specify the error.
+         */
+        public UserRepetitionException(String message){
             super(message);
         }
     }

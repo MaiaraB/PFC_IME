@@ -24,14 +24,14 @@
 package br.eb.ime.pfc.controllers;
 
 import br.eb.ime.pfc.domain.AccessLevel;
-import br.eb.ime.pfc.domain.AccessLevel.LayerRepetitionException;
 import br.eb.ime.pfc.domain.AccessLevelManager;
-import br.eb.ime.pfc.domain.Layer;
-import br.eb.ime.pfc.domain.LayerManager;
 import br.eb.ime.pfc.domain.ObjectDuplicateException;
 import br.eb.ime.pfc.domain.ObjectNotFoundException;
+import br.eb.ime.pfc.domain.User;
+import br.eb.ime.pfc.domain.UserManager;
 import br.eb.ime.pfc.hibernate.HibernateUtil;
 import flexjson.JSONSerializer;
+import flexjson.transformer.AbstractTransformer;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -42,51 +42,59 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.hibernate.HibernateException;
 
 /**
  *
  * @author arthurfernandes
  */
-@WebServlet(name = "AccessLevelHandlerServlet", urlPatterns = {"/access-level-handler"})
-public class AccessLevelHandlerServlet extends HttpServlet {
+@WebServlet(name = "UserHandlerServlet", urlPatterns = {"/user-handler"})
+public class UserHandlerServlet extends HttpServlet {
     private static final String OK_MESSAGE = "OK";
     private static final String ERROR_MESSAGE = "ERROR";
     private static final String DUPLICATE_MESSAGE = "DUPLICATE";
     private static final String NOTFOUND_MESSAGE = "NOTFOUND";
-    public enum ACCESSLEVEL_ACTION{
+    public enum USER_ACTION{
         DELETE,
         UPDATE,
         CREATE,
         READALL
     }
-    final static Map<String,ACCESSLEVEL_ACTION> ACCESSLEVEL_ACTION_MAPPING = new HashMap<>();
+    final static Map<String,USER_ACTION> USER_ACTION_MAPPING = new HashMap<>();
     static{
-        ACCESSLEVEL_ACTION_MAPPING.put("delete", ACCESSLEVEL_ACTION.DELETE);
-        ACCESSLEVEL_ACTION_MAPPING.put("readAll", ACCESSLEVEL_ACTION.READALL);
-        ACCESSLEVEL_ACTION_MAPPING.put("update", ACCESSLEVEL_ACTION.UPDATE);
-        ACCESSLEVEL_ACTION_MAPPING.put("add", ACCESSLEVEL_ACTION.CREATE);
+        USER_ACTION_MAPPING.put("delete", USER_ACTION.DELETE);
+        USER_ACTION_MAPPING.put("readAll", USER_ACTION.READALL);
+        USER_ACTION_MAPPING.put("update", USER_ACTION.UPDATE);
+        USER_ACTION_MAPPING.put("add", USER_ACTION.CREATE);
     }
+    
     private void readAll(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final AccessLevelManager accessLevelManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
-        final List<AccessLevel> accessLevels = accessLevelManager.readAll();
+        final UserManager userManager = new UserManager(HibernateUtil.getCurrentSession());
+        final List<User> users = userManager.readAll();
         JSONSerializer serializer = new JSONSerializer();
         final StringBuilder jsonLayersBuilder = new StringBuilder();
 
-        serializer.rootName("objects").
-            include("layers").
-            exclude("*.class").serialize(accessLevels,jsonLayersBuilder);
+        serializer.rootName("objects").transform(new AbstractTransformer(){
+            @Override
+            public void transform(Object object) {
+                if(object instanceof AccessLevel){
+                    AccessLevel accessLevel = (AccessLevel) object;
+                    this.getContext().writeQuoted(accessLevel.getName());
+                }
+            }
+        }, "accessLevel").
+            exclude("*.class").
+            serialize(users,jsonLayersBuilder);
 
         response.setContentType("application/json");
         response.getWriter().println(jsonLayersBuilder.toString());
         response.getWriter().flush();
     }
-
+    
     private void update(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final AccessLevelManager accessLevelManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
+        final UserManager userManager = new UserManager(HibernateUtil.getCurrentSession());
         try{
-            AccessLevel accessLevel = this.retrieveObjectFromRequest(request);
-            accessLevelManager.update(accessLevel);
+            User user = this.retrieveObjectFromRequest(request);
+            userManager.update(user);
             response.getWriter().print(OK_MESSAGE);
         }
         catch(ObjectNotFoundException e){
@@ -99,14 +107,14 @@ public class AccessLevelHandlerServlet extends HttpServlet {
             response.getWriter().flush();
         }
     }
-
+    
     private void create(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String name = request.getParameter("name");
-        if(name != null){
-            final AccessLevelManager accessLevelManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
+        final String username = request.getParameter("username");
+        if(username != null){
+            final UserManager userManager = new UserManager(HibernateUtil.getCurrentSession());
             try{
-                AccessLevel accessLevel = this.retrieveObjectFromRequest(request);
-                accessLevelManager.create(accessLevel);
+                User user = this.retrieveObjectFromRequest(request);
+                userManager.create(user);
                 response.getWriter().print(OK_MESSAGE);
             }
             catch(ObjectDuplicateException e){
@@ -120,13 +128,13 @@ public class AccessLevelHandlerServlet extends HttpServlet {
             }
         }
     }
-
+    
     private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String name = request.getParameter("name");
-        if(name != null){
-            final AccessLevelManager accessLevelManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
+        final String username = request.getParameter("username");
+        if(username != null){
+            final UserManager userManager = new UserManager(HibernateUtil.getCurrentSession());
             try{
-                accessLevelManager.delete(name);
+                userManager.delete(username);
                 response.getWriter().print(OK_MESSAGE);
             }
             catch(ObjectNotFoundException e){
@@ -143,6 +151,9 @@ public class AccessLevelHandlerServlet extends HttpServlet {
             response.getWriter().print(ERROR_MESSAGE);
         }
     }
+    
+    
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -154,10 +165,10 @@ public class AccessLevelHandlerServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        final String actionString = request.getParameter("action");
+            final String actionString = request.getParameter("action");
         
         if(actionString!=null){
-            final ACCESSLEVEL_ACTION action = ACCESSLEVEL_ACTION_MAPPING.get(actionString);
+            final USER_ACTION action = USER_ACTION_MAPPING.get(actionString);
             if(action!=null){
                 switch(action){
                         case READALL:
@@ -186,42 +197,33 @@ public class AccessLevelHandlerServlet extends HttpServlet {
             }
         }
     }
-
-    public AccessLevel retrieveObjectFromRequest(HttpServletRequest request){
+     
+    public User retrieveObjectFromRequest(HttpServletRequest request){
+        final UserManager userManager = new UserManager(HibernateUtil.getCurrentSession());
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String accessLevelName = request.getParameter("accessLevel");
+        if(username == null || password == null || accessLevelName == null ||
+                username.equals("") || password.equals("") || accessLevelName.equals("")){
+            throw new RuntimeException("Cannot initialize user");
+        }
+        final AccessLevelManager accessLevelManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
+        final AccessLevel accessLevel = accessLevelManager.getById(accessLevelName);
+        final User user = new User(username,password,accessLevel);
+        //OPTIONAL PARAMETERS
+        String email = request.getParameter("email");
         String name = request.getParameter("name");
-        if(name == null || name.equals("")){
-            throw new RuntimeException("No name attribute specified");
+        String telephone = request.getParameter("telephone");
+        if(email!=null){
+            user.setEmail(email);
         }
-        final AccessLevel accessLevel = new AccessLevel(name);
-        String layerWmsId;
-        int layerIndex = 0;
-        final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
-        while((layerWmsId = request.getParameter("layers["+layerIndex+"][wmsId]")) != null){
-            if(layerWmsId.equals("")){
-                throw new RuntimeException("");
-            }
-            try{
-                final Layer layer = layerManager.getById(layerWmsId);
-                accessLevel.addLayer(new Layer(layerWmsId,layerWmsId));
-            }
-            catch(HibernateException e){
-                throw new RuntimeException("No layer with the specified id");
-            }
-            catch(LayerRepetitionException e){
-                throw new RuntimeException("Repeated layer to add");
-            }
-            layerIndex += 1;
+        if(name!=null){
+            user.setName(name);
         }
-        return accessLevel;
-    }
-    
-    public AccessLevel loadObject(HttpServletRequest request,AccessLevelManager accessLevelManager){
-        String name = request.getParameter("name");
-        if(name == null || name.equals("")){
-            throw new RuntimeException("No name attribute specified");
+        if(telephone!=null){
+            user.setTelephone(telephone);
         }
-        final AccessLevel accessLevel = accessLevelManager.getById(name);
-        return accessLevel;
+        return user;
     }
     
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

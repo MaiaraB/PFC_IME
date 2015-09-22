@@ -43,18 +43,30 @@ public class AccessLevelManager {
     }
     
     public void create(AccessLevel accessLevel) throws HibernateException{
+        if(this.session.get(AccessLevel.class,accessLevel.getName())!=null){
+            throw new ObjectDuplicateException("There's a layer with the specified wmsID");
+        }
         this.session.merge(accessLevel);
     }
     
-    public AccessLevel getAccessLevel(String name) throws HibernateException{
-        return (AccessLevel) this.session.get(AccessLevel.class, name);
+    public AccessLevel getById(String name) throws HibernateException{
+        final AccessLevel accessLevel =  (AccessLevel) this.session.get(AccessLevel.class, name);
+        if(accessLevel == null){
+            throw new ObjectNotFoundException("No such accessLevel with the specified name");
+        }
+        return accessLevel;
     }
     
     public void update(AccessLevel accessLevel) throws HibernateException{
+        this.getById(accessLevel.getName());
         this.session.merge(accessLevel);
     }
     
-    public void delete(AccessLevel accessLevel) throws HibernateException{
+    public void delete(String name) throws HibernateException{
+        final AccessLevel accessLevel = (AccessLevel) this.session.get(AccessLevel.class, name);
+        if(accessLevel == null){
+            throw new ObjectNotFoundException("No such accessLevel with the specified name");
+        }
         this.session.delete(accessLevel);
     }
     

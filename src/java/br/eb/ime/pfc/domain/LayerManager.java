@@ -42,16 +42,24 @@ public class LayerManager {
     }
     
     public void create(Layer layer){
-        this.session.save(layer);
+        if(this.session.get(Layer.class,layer.getWmsId())!=null){
+            throw new ObjectDuplicateException("There's a layer with the specified wmsID");
+        }
+        this.session.merge(layer);
     }
     
-    public Layer getLayerById(String wmsId){
-        return (Layer) this.session.get(Layer.class, wmsId);
+    public Layer getById(String wmsId) throws ObjectNotFoundException{
+        final Layer layer =  (Layer) this.session.get(Layer.class, wmsId);
+        if(layer == null){
+            throw new ObjectNotFoundException("No such layer with the specified wmsId");
+        }
+        return layer;
     }
     
-    public List<Layer> getAllLayers(){
+    public List<Layer> readAll(){
         final Query query = session.createQuery("from Layer");
         final List<Layer> allLayers = query.list();
+        
         allLayers.sort(new Comparator<Layer>(){
             @Override
             public int compare(Layer o1, Layer o2) {
@@ -65,11 +73,16 @@ public class LayerManager {
         return allLayers;
     }
     
-    public void update(Layer layer){
-        this.session.update(layer);
+    public void update(Layer layer) throws ObjectNotFoundException{
+        this.getById(layer.getWmsId());
+        this.session.merge(layer);
     }
     
-    public void delete(Layer layer){
+    public void delete(String wmsId) throws ObjectNotFoundException{
+        final Layer layer = (Layer) this.session.get(Layer.class, wmsId);
+        if(layer == null){
+            throw new ObjectNotFoundException("No such layer with the specified wmsId");
+        }
         this.session.delete(layer);
     }
 }

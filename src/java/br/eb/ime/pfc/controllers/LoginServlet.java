@@ -94,7 +94,7 @@ public class LoginServlet extends HttpServlet {
             //If user isn't found it will be null
             User user = null;
             try{
-                user = userManager.getUserByUsername(username);
+                user = userManager.getById(username);
             }
             catch(HibernateException e){
                 user = null;
