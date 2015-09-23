@@ -39,7 +39,6 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
         
         try{
             HibernateUtil.getSessionFactory();
-            //HibernateUtil.main(null);
         }
         catch(HibernateException e){
             
