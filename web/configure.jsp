@@ -25,6 +25,7 @@
                 .script("resources/js/wmscrud-template.js").wait()
                 .script("resources/js/wmscrud-implementation.js").wait()
                 .script("resources/js/wmscrud-uihandler.js")
+                .script("resources/js/jquery-ui-1.11.4.custom/jquery-ui.min.css")
                 .wait(function(){
                     if(typeof LayerHandler === 'undefined' || UserHandler === 'undefined' || AccessLevelHandler === 'undefined'){
 
@@ -39,7 +40,20 @@
                     initializeUIPanel(accessLevelPanel,AccessLevelHandler,"layers");
                     initializeUIPanel(usersPanel,UserHandler,"accessLevel");
                     
+                    var modalPrompt = $("#modal-prompt");
+                    var modalConfirm = modalPrompt.find(".modal-confirm").first();
                     //Additional UI
+                    /*$(document).keyup(function(e){
+                        if(e.keyCode === 13){//ENTER
+                            if(modalPrompt.is(":visible")){
+                                
+                            }
+                        }
+                        else if(e.keyCode === 27){//ESCAPE
+                            
+                        }
+                    });*/
+                    
                     $(".slidable").each(function(){
                         var self = this;
                         $(this).click(function(event){
@@ -52,6 +66,11 @@
                         });
                     });
                     
+                    var objectFeatures = $("#layers-panel .handler-object-features");
+                    objectFeatures.sortable({
+                        handler : ".panel-heading",
+                        placeholder : "handler-object-features-placeholder"
+                    });
                 });
             });
         </script>
@@ -78,6 +97,7 @@
             
             .list-group { margin-bottom:0px; }
             .input-group {margin-bottom:15px;}
+            
             body{ 
                 background-image: url('${pageContext.request.contextPath}/resources/img/background3.jpg');
                 background-repeat: repeat;
@@ -105,6 +125,13 @@
             }
             .extensible-panel{
                 max-height: 80vh;
+            }
+            .handler-object-features-placeholder{
+                line-height : 10px;
+                height: 100px;
+            }
+            .handler-object-features .input-group{
+                margin-bottom:7px;
             }
         </style>
     </head>
@@ -183,7 +210,8 @@
                                             <div class="text-center handler-nested-add-select-features clickable"><span class="glyphicon glyphicon-plus-sign add-glyph"></span></div>
                                             <div class=""></div>
                                             <div class="handler-nested-template-features list-group-item" style="display:none">
-                                                <a class="trash handler-nested-delete-current clickable"><span class="glyphicon glyphicon-trash"></span></a>
+                                                <label class="number-order-placeholder"></label><span></span>
+                                                <a class="trash handler-nested-delete-current clickable pull-right"><span class="glyphicon glyphicon-trash"></span></a>
                                                 <div class="input-group">
                                                     <span for="handler-object-features-wmsId" class="input-group-addon">wmsId:</span>
                                                     <input type="text" class="form-control handler-object-features-wmsId handler-field" placeholder="wmsId"/>
@@ -384,7 +412,7 @@
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-default modal-cancel" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary modal-confirm" data-dismiss="modal">Confirmar</button>
+                    <button type="submit" class="btn btn-primary modal-confirm" data-dismiss="modal">Confirmar</button>
                   </div>
                 </div>
 

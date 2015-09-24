@@ -27,7 +27,7 @@
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </button>
-                        <a class="navbar-brand hidden-xs" href="#">RIO 2016</a>
+                        <a class="navbar-brand hidden-xs" href="#">PFC_IME</a>
                         <span class="navbar-brand">${username} : ${accessLevelName}</span>
                     </div>
                     

@@ -135,12 +135,12 @@ else{
                 };
                 var deleteCurrentFunction = function(event){
                     var self = this;
-                    //promptMessage("","Deseja apagar?",function(){
+                    promptMessage("","Deseja apagar?",function(){
                         var template= $(self).parents(".handler-template-obj").first();
                         var objId = template.find(".handler-id-"+objectHandler.idField).first().text();
                         objectHandler.delete.viewObj = template;
                         objectHandler.delete(objId);
-                    //});
+                    });
                 };
                 
                 objectIds.click(loadObjFunction);
@@ -268,9 +268,11 @@ else{
                 promptContainer.find(".modal-header").hide();
             }
             promptContainer.find(".modal-body").html(message);
-            promptContainer.find(".modal-confirm").click(function(){
+            var modalConfirm = promptContainer.find(".modal-confirm");
+            modalConfirm.unbind("click");
+            modalConfirm.click(function(){
                 console.log(success);
-               if(typeof success !== 'undefined'){
+                if(typeof success !== 'undefined'){
                     try{
                         success();
                     } 
@@ -279,7 +281,9 @@ else{
                     }
                 }
             });
-            promptContainer.find(".modal-cancel").click(function(){
+            var modalCancel = promptContainer.find(".modal-cancel");
+            modalCancel.unbind("click");
+            modalCancel.click(function(){
                 if(typeof cancel !== 'undefined'){
                     try{
                         cancel();
@@ -289,7 +293,7 @@ else{
                     }
                 }
             });
-            promptContainer.modal('show');  
+            promptContainer.modal({keyboard : true});
         };
         return objectHandler;
     };
