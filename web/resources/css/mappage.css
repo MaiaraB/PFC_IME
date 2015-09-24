@@ -21,6 +21,7 @@ and open the template in the editor.
     padding-left: 10px;
     padding-right: 10px;
     padding-bottom: 0px;
+    padding-top: 9px;
     border-radius: 10px;
     border: 1px solid #cccccc;
     bottom: 12px;
@@ -37,6 +38,7 @@ and open the template in the editor.
     overflow : scroll;
     padding: 3px;
     border-style: hidden;
+    margin-bottom: 0px;
 }
 
 .ol-popup:after, .ol-popup:before {
@@ -91,7 +93,7 @@ and open the template in the editor.
 table {
     color: #808080;
     border-collapse: collapse;
-    border-radius: 10px;
+    border-radius: 15px;
     border-style: hidden;
     box-shadow: 0 0 0 2px #336666;
     padding: 10px;
@@ -99,7 +101,7 @@ table {
     font-size: 14px;
     line-height: 1.4em;
     font-style: normal;
-    margin-top: 15px;
+    margin-top: 8px;
     /*font-weight: bold;
     border-collapse:separate;*/
 }
@@ -127,5 +129,6 @@ td {
     border-style: hidden;
    
 }
+
 
 
