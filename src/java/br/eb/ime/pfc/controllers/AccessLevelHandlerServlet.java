@@ -122,26 +122,37 @@ public class AccessLevelHandlerServlet extends HttpServlet {
     }
 
     private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String name = request.getParameter("name");
-        if(name != null){
-            final AccessLevelManager accessLevelManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
+        String id = null;
+        Integer idIndex = 0;
+        final AccessLevelManager layerManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
+        boolean rollback = false;
+        while((id = request.getParameter("ids["+idIndex+"][id]"))!=null){
             try{
-                accessLevelManager.delete(name);
-                response.getWriter().print(OK_MESSAGE);
+                layerManager.delete(id);
             }
             catch(ObjectNotFoundException e){
                 response.getWriter().print(NOTFOUND_MESSAGE);
+                rollback = true;
+                break;
             }
             catch(RuntimeException e){
+                rollback = true;
                 response.getWriter().print(ERROR_MESSAGE);
+                break;
             }
             finally{
-                response.getWriter().flush();
+                idIndex++;
             }
         }
-        else{
-            response.getWriter().print(ERROR_MESSAGE);
+        
+        if(rollback == true){
+            HibernateUtil.getCurrentSession().getTransaction().rollback();
         }
+        else{
+            response.getWriter().print(OK_MESSAGE);
+        }
+        
+        response.getWriter().flush();
     }
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>

@@ -45,8 +45,6 @@ WMSCRUD.ObjectHandler = function(){
 
 WMSCRUD.ObjectHandler.prototype.attach = function(actionSubject,actionObserver){
     this.observers[actionSubject] = this.observers[actionSubject] || [];
-    //actionSubject.observers = actionSubject.observers || [];
-    //actionSubject.observers.push(actionObserver);
     this.observers[actionSubject].push(actionObserver);
 };
 
@@ -262,10 +260,15 @@ WMSCRUD.ObjectHandler.prototype.save = function(){
     this.requestAction(saveURL,self.save,objectSave,successCallBack);
 };
 
-WMSCRUD.ObjectHandler.prototype.delete = function(objId){
+WMSCRUD.ObjectHandler.prototype.delete = function(objIds){
+    if(!$.isArray(objIds)){
+        var temp = objIds;
+        objIds = [];
+        objIds.push(temp);
+    }
     var self = this;
     self.delete.state = this.ACTIONSUBJECTSTATE.UNDEFINED;        
-    var deleteURL = this.url + "?action=" + this.ACTIONS.DELETE + "&" + this.idField + "=" + objId;
+    var deleteURL = this.url + "?action=" + this.ACTIONS.DELETE;
     var successCallBack = function(self,data){
         if(typeof data !== 'undefined' && data === self.DATARESPONSESTATE.OK){
             self.delete.state = self.ACTIONSUBJECTSTATE.OK;
@@ -277,7 +280,12 @@ WMSCRUD.ObjectHandler.prototype.delete = function(objId){
             self.delete.state = self.ACTIONSUBJECTSTATE.ERROR;
         }
     };
-    this.requestAction(deleteURL,self.delete,"",successCallBack);
+    var i = 0,ii = objIds.length;
+    var dataSend = {ids : []};
+    for(;i<ii;i++){
+        dataSend.ids.push({id : objIds[i]});
+    }
+    this.requestAction(deleteURL,self.delete,dataSend,successCallBack);
 };
 
 WMSCRUD.ObjectHandler.prototype.deleteCurrent = function(){

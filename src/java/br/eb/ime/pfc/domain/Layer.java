@@ -168,6 +168,14 @@ public class Layer implements Serializable {
         features.add(feature);
     }
     
+    public Collection<AccessLevel> getAccessLevels(){
+        return Collections.unmodifiableSet(this.accessLevels);
+    }
+    
+    public void addAccessLevel(AccessLevel accessLevel){
+        this.accessLevels.add(accessLevel);
+    }
+    
     /**
      * Set the opacity of this Layer.
      * @param opacity 

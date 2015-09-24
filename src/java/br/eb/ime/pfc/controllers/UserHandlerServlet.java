@@ -25,6 +25,7 @@ package br.eb.ime.pfc.controllers;
 
 import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.AccessLevelManager;
+import br.eb.ime.pfc.domain.LayerManager;
 import br.eb.ime.pfc.domain.ObjectDuplicateException;
 import br.eb.ime.pfc.domain.ObjectNotFoundException;
 import br.eb.ime.pfc.domain.User;
@@ -130,26 +131,37 @@ public class UserHandlerServlet extends HttpServlet {
     }
     
     private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String username = request.getParameter("username");
-        if(username != null){
-            final UserManager userManager = new UserManager(HibernateUtil.getCurrentSession());
+        String id = null;
+        Integer idIndex = 0;
+        final UserManager layerManager = new UserManager(HibernateUtil.getCurrentSession());
+        boolean rollback = false;
+        while((id = request.getParameter("ids["+idIndex+"][id]"))!=null){
             try{
-                userManager.delete(username);
-                response.getWriter().print(OK_MESSAGE);
+                layerManager.delete(id);
             }
             catch(ObjectNotFoundException e){
                 response.getWriter().print(NOTFOUND_MESSAGE);
+                rollback = true;
+                break;
             }
             catch(RuntimeException e){
+                rollback = true;
                 response.getWriter().print(ERROR_MESSAGE);
+                break;
             }
             finally{
-                response.getWriter().flush();
+                idIndex++;
             }
         }
-        else{
-            response.getWriter().print(ERROR_MESSAGE);
+        
+        if(rollback == true){
+            HibernateUtil.getCurrentSession().getTransaction().rollback();
         }
+        else{
+            response.getWriter().print(OK_MESSAGE);
+        }
+        
+        response.getWriter().flush();
     }
     
     

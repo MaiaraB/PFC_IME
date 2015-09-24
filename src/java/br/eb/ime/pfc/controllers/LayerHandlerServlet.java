@@ -23,6 +23,7 @@
  */
 package br.eb.ime.pfc.controllers;
 
+import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.Feature;
 import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.LayerManager;
@@ -40,6 +41,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hibernate.Hibernate;
 
 /**
  *
@@ -112,11 +114,16 @@ public class LayerHandlerServlet extends HttpServlet {
     public void readAll(HttpServletRequest request,HttpServletResponse response) throws IOException{
         final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
         final List<Layer> allLayers = layerManager.readAll();
+        for(Layer layer : allLayers){
+            Hibernate.initialize(layer.getAccessLevels());
+        }
+        
         JSONSerializer serializer = new JSONSerializer();
         final StringBuilder jsonLayersBuilder = new StringBuilder();
 
         serializer.rootName("objects").
             include("features").
+            include("accessLevels").
             exclude("*.class").serialize(allLayers,jsonLayersBuilder);
                 
         response.setContentType("application/json");
@@ -167,26 +174,37 @@ public class LayerHandlerServlet extends HttpServlet {
     }
     
     public void delete(HttpServletRequest request,HttpServletResponse response) throws IOException{
-        final String wmsId = request.getParameter("wmsId");
-        if(wmsId != null){
-            final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+        String id = null;
+        Integer idIndex = 0;
+        final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
+        boolean rollback = false;
+        while((id = request.getParameter("ids["+idIndex+"][id]"))!=null){
             try{
-                layerManager.delete(wmsId);
-                response.getWriter().print(OK_MESSAGE);
+                layerManager.delete(id);
             }
             catch(ObjectNotFoundException e){
                 response.getWriter().print(NOTFOUND_MESSAGE);
+                rollback = true;
+                break;
             }
             catch(RuntimeException e){
+                rollback = true;
                 response.getWriter().print(ERROR_MESSAGE);
+                break;
             }
             finally{
-                response.getWriter().flush();
+                idIndex++;
             }
         }
-        else{
-            response.getWriter().print(ERROR_MESSAGE);
+        
+        if(rollback == true){
+            HibernateUtil.getCurrentSession().getTransaction().rollback();
         }
+        else{
+            response.getWriter().print(OK_MESSAGE);
+        }
+        
+        response.getWriter().flush();
     }
     
     public Layer retrieveObjectFromRequest(HttpServletRequest request) throws ObjectNotFoundException{
@@ -223,6 +241,16 @@ public class LayerHandlerServlet extends HttpServlet {
             layer.addFeature(new Feature(featureName,featureWmsId));
             featureIndex += 1;
             request.getServletContext().log("INDEX:"+featureIndex+",ID:"+featureWmsId);
+        }
+        
+        String accessLevelName;
+        int accessLevelIndex = 0;
+        while((accessLevelName = request.getParameter("accessLevels["+accessLevelIndex+"][name]")) != null){
+            if(accessLevelName.equals("")){
+                throw new RuntimeException("");
+            }
+            layer.addAccessLevel(new AccessLevel(accessLevelName));
+            accessLevelIndex += 1;
         }
         return layer;
     }

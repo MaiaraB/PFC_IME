@@ -26,15 +26,14 @@ if(typeof WMSCRUD === 'undefined'){
     console.log('No WMSCRUD class defined');
 }
 else{
-    var initializeUIPanel = function(panel,HandlerClass,nestedElement){
+    var initializeUIPanel = function(panel,HandlerClass,nestedElements){
             var panelHeading = panel.find(".panel-heading").first();
             var panelBody = panel.find(".panel-body").first();
             var objectListDiv = panel.find(".object-list-div").first();
             var objectDiv = panel.find(".object-div").first();
             var addSelect = panel.find(".handler-add-select");
-            var nestedAddSelect = panel.find(".handler-nested-add-select-"+nestedElement);
             var addSaveButton = panel.find(".handler-add-save").first();
-            var deleteButton = panel.find(".handler-delete-current").first();
+            var deleteMultipleButton = panel.find(".handler-delete-multiple").first();
             var objectHandler = new HandlerClass(objectListDiv,objectDiv);
             var objectHandlerId = panel.find(".handler-object-"+objectHandler.idField).first();
             addSaveButton.click();
@@ -70,27 +69,41 @@ else{
                 clearErrorHighlight();
              });
          });
-
-        var nestedElementDeleteFunction = function(){
-            var layersNestedDeleteCurrent = objectHandler.objectDiv.find(".handler-nested-delete-current");
-            $.each(layersNestedDeleteCurrent,function(index){
-                layersNestedDeleteCurrent.click(function(event){
-                    $(this).parents(".handler-nested-copy-"+nestedElement).first().remove();
+        var i = 0,ii = nestedElements.length;
+        var nestedAddSelect = {};
+        for(;i<ii;i++){
+            nestedAddSelect[i] = panel.find(".handler-nested-add-select-"+nestedElements[i]).first();
+            nestedAddSelect[i].get(0).nested = nestedElements[i];
+            
+            var nestedElementDeleteFunction = function(nestedElement){
+                var layersNestedDeleteCurrent = objectHandler.objectDiv.find(".handler-nested-delete-current");
+                $.each(layersNestedDeleteCurrent,function(index){
+                    layersNestedDeleteCurrent.click(function(event){
+                        $(this).parents(".handler-nested-copy-"+nestedElement).first().remove();
+                    });
                 });
+            };
+
+            nestedAddSelect[i].click(function(event){
+                var nestedElement = this.nested;
+                var handlerNested = objectHandler.objectDiv.find(".handler-object-"+nestedElement).first();
+                var template = objectHandler.objectDiv.find(".handler-nested-template-"+nestedElement).first();
+                var copy = template.clone();
+                copy.removeClass("handler-nested-template-"+nestedElement);
+                copy.addClass("handler-nested-copy-"+nestedElement);
+                copy.show();
+                handlerNested.append(copy);
+                nestedElementDeleteFunction(nestedElement);
             });
-        };
 
-        nestedAddSelect.click(function(event){
-            var handlerNested = objectHandler.objectDiv.find(".handler-object-"+nestedElement).first();
-            var template = objectHandler.objectDiv.find(".handler-nested-template-"+nestedElement).first();
-            var copy = template.clone();
-            copy.removeClass("handler-nested-template-"+nestedElement);
-            copy.addClass("handler-nested-copy-"+nestedElement);
-            copy.show();
-            handlerNested.append(copy);
-            nestedElementDeleteFunction();
+        }
+        objectHandler.attach(objectHandler.loadObj,function(state){
+            var i = 0,ii = nestedAddSelect.length;
+            for(;i<ii;i++){
+                nestedElementDeleteFunction(nestedAddSelect[i].get(0).nested);
+            }
         });
-
+        
         addSaveButton.click(function(event){
             if(objectHandler.saveState){
                 //promptMessage("","Deseja salvar o item?",function(){
@@ -103,17 +116,58 @@ else{
                 objectHandler.add();
             }
         });
-        /*
-        deleteButton.click(function(event){
-           promptMessage("Tem certeza que deseja deletar?","A operação não poderá ser desfeita",function(){
-               console.log(this.objectDiv.find("."+this.viewIdPreffix+"-object-"+this.idField).first().val());
-               objectHandler.deleteCurrent(); 
-           });
-        });*/
-        objectHandler.attach(objectHandler.loadObj,function(state){
-            nestedElementDeleteFunction();
+        
+        deleteMultipleButton.click(function(event){
+            var objectIdDeleteList = [];
+            var objectIdTemplateList = [];
+            objectHandler.objectListDiv.find(".handler-checkbox").each(function(index){
+                try{
+                    if(this.checked){
+                        var template = $(this).parents(".handler-template-obj").first();
+                        var objectId = template.find(".handler-id-"+objectHandler.idField).first().text();
+                        objectIdDeleteList.push(objectId);
+                        objectIdTemplateList.push(template);
+                    }
+                }
+                catch(err){
+                    
+                }
+            });
+            var message = "";
+            if(objectIdDeleteList.length < 1){
+                alertMessage("Info: ","Não há itens selecionados no momento",alertMessage.importance.INFO);
+                return;
+            }
+            else if(objectIdDeleteList.length < 2){
+                message = "Deseja apagar o item?";
+            }
+            else{
+                message = "Deseja apagar todos os "+objectIdDeleteList.length+" items?";
+            }
+            promptMessage("",message,function(){
+                        try{
+                            var successDeleteCallback = function(state){
+                                console.log("CALLBACK");
+                                if(state === objectHandler.ACTIONSUBJECTSTATE.OK){
+                                    var i = 0,ii = objectIdTemplateList.length;
+                                    for(;i<ii;i++){
+                                        console.log(objectIdTemplateList[0]);
+                                        $(objectIdTemplateList[i]).remove();
+                                    }
+                                }
+                                objectHandler.detach(objectHandler.delete,successDeleteCallback);
+                            }
+                            objectHandler.attach(objectHandler.delete,successDeleteCallback);
+                            objectHandler.delete(objectIdDeleteList);
+                        }
+                        catch(err){
+                            console.log("Problem when deleting multiple items");
+                        }
+                });
+            
         });
-
+        
+        
         objectHandler.attach(objectHandler.loadObj,function(state){
             objectHandler.saveState = true;
             changeSaveAddView();
@@ -192,7 +246,12 @@ else{
             });
             messageContainer.find(".message-body").remove();
             messageView.appendTo(messageContainer);
-            messageView.fadeIn(400);
+            messageView.fadeIn({
+                    duration : 400,
+                    done: function(){
+                        window.setTimeout(function(){messageView.fadeOut(400);},3500);
+                    }
+                });
         };
         alertMessage.importance = {WARNING : 'warning',SUCCESS : 'success',INFO : 'info',DANGER : 'danger'};
         //ADD
@@ -271,7 +330,6 @@ else{
             var modalConfirm = promptContainer.find(".modal-confirm");
             modalConfirm.unbind("click");
             modalConfirm.click(function(){
-                console.log(success);
                 if(typeof success !== 'undefined'){
                     try{
                         success();
@@ -293,7 +351,7 @@ else{
                     }
                 }
             });
-            promptContainer.modal({keyboard : true});
+            promptContainer.modal('show');
         };
         return objectHandler;
     };

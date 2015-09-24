@@ -19,46 +19,38 @@
         <!--Font Awesome-->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/font-awesome-4.4.0/css/font-awesome.min.css"/>
         <script src="${pageContext.request.contextPath}/resources/LABjs-2.0.3/LAB.min.js"></script>
+        <!--Jquery Upload File-->
         <script type="text/javascript">
             $(document).ready(function(){
                 $LAB
-                .script("resources/js/wmscrud-template.js").wait()
-                .script("resources/js/wmscrud-implementation.js").wait()
-                .script("resources/js/wmscrud-uihandler.js")
-                .script("resources/js/jquery-ui-1.11.4.custom/jquery-ui.min.css")
+                .script("${pageContext.request.contextPath}/resources/js/wmscrud-template.js").wait()
+                .script("${pageContext.request.contextPath}/resources/js/wmscrud-implementation.js").wait()
+                .script("${pageContext.request.contextPath}/resources/js/wmscrud-uihandler.js")
+                .script("${pageContext.request.contextPath}/resources/js/jquery-ui-1.11.4.custom/jquery-ui.min.js")
                 .wait(function(){
                     if(typeof LayerHandler === 'undefined' || UserHandler === 'undefined' || AccessLevelHandler === 'undefined'){
 
                     console.log("No WMSCRUD class LayerHandler||UserHandler||AccessLevelHandler");
                     return;
                     }
-
+                    
                     var layersPanel = $("#layers-panel");
                     var accessLevelPanel = $("#access-level-panel");
                     var usersPanel = $("#users-panel");
-                    initializeUIPanel(layersPanel,LayerHandler,"features");
-                    initializeUIPanel(accessLevelPanel,AccessLevelHandler,"layers");
-                    initializeUIPanel(usersPanel,UserHandler,"accessLevel");
+                    initializeUIPanel(layersPanel,LayerHandler,["features","accessLevels"]);
+                    initializeUIPanel(accessLevelPanel,AccessLevelHandler,["layers"]);
+                    initializeUIPanel(usersPanel,UserHandler,[]);
                     
-                    var modalPrompt = $("#modal-prompt");
-                    var modalConfirm = modalPrompt.find(".modal-confirm").first();
-                    //Additional UI
-                    /*$(document).keyup(function(e){
-                        if(e.keyCode === 13){//ENTER
-                            if(modalPrompt.is(":visible")){
-                                
-                            }
-                        }
-                        else if(e.keyCode === 27){//ESCAPE
-                            
-                        }
-                    });*/
-                    
+                    //Aditional UI
                     $(".slidable").each(function(){
                         var self = this;
                         $(this).click(function(event){
                            try{
-                                $(self).siblings(".panel-body").first().slideToggle(200); 
+                                var panelBody = $(self).siblings(".panel-body");
+                                if(panelBody.length < 1){
+                                    panelBody = $(self).parents(".panel").first().find(".panel-body");
+                                }
+                                panelBody.first().slideToggle(200); 
                             }
                             catch(err){
                                 console.log("No body to hide");
@@ -71,6 +63,20 @@
                         handler : ".panel-heading",
                         placeholder : "handler-object-features-placeholder"
                     });
+                    
+                    try{
+                        var configurationContainer = $(".configuration-import-export").first();
+                        var configurationExportButton = configurationContainer.find("#export-configuration-button").first();
+                        var configurationExportContainer = configurationContainer.find("#export-configuration-container").first();    
+                        /*var configurationExportFile = configurationContainer.find("#export-configuration-input");
+                        configurationExportButton.click(function(event){
+                            configurationExportFile.click();
+                        });*/
+                    }
+                    catch(err){
+                        console.log("Could not load file exporter");
+                    }
+                    
                 });
             });
         </script>
@@ -91,7 +97,7 @@
             }
             
             .panel .glyphicon,.list-group-item .glyphicon { margin-right:5px; }
-            .panel-body .radio, .checkbox { display:inline-block;margin:0px; }
+            .panel-body .radio, .handler-checkbox { display:inline-block;margin:0px; }
             .panel-body input[type=checkbox]:checked + label { text-decoration: line-through;color: rgb(128, 144, 160); }
             .list-group-item:hover, a.list-group-item:focus {text-decoration: none;background-color: rgb(245, 245, 245);}
             
@@ -133,6 +139,7 @@
             .handler-object-features .input-group{
                 margin-bottom:7px;
             }
+            
         </style>
     </head>
     <body>
@@ -148,7 +155,7 @@
                     <div class="col-md-5">
                         <div class="panel panel-default extensible-panel table-responsive">
                             <div class="panel-heading">
-                                <span class="glyphicon glyphicon-list"></span>Configuração
+                                <span class="glyphicon glyphicon-list clickable slidable"> Configuração</span>
                                 <div class="pull-right action-buttons">
                                     <div class="btn-group pull-right">
                                         <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
@@ -156,7 +163,7 @@
                                         </button>
                                         <ul class="dropdown-menu slidedown sortable">
                                             <li><a class="clickable handler-add-select"><span class="glyphicon glyphicon-plus-sign"></span>Adicionar</a></li>
-                                            <li><a class="trash clickable"><span class="glyphicon glyphicon-trash"></span>Deletar</a></li>
+                                            <li><a class="trash clickable handler-delete-multiple"><span class="glyphicon glyphicon-trash "></span>Deletar</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -168,7 +175,7 @@
                                 <div class="text-center handler-add-select clickable"><span class="glyphicon glyphicon-plus-sign add-glyph"></span></div>
                                 <div class="handler-template-obj list-group-item" style="display:none">
                                         
-                                        <input type="checkbox" class="checkbox"/>
+                                        <input type="checkbox" class="handler-checkbox"/>
                                         <label for="checkbox" class="clickable handler-id-wmsId"></label>
                                         
                                         <div class="pull-right action-buttons">
@@ -203,7 +210,7 @@
                                     </div>     
                                     <div class="panel panel-danger">
                                         <div class="panel-heading slidable clickable">
-                                            Features
+                                            Feições
                                         </div>
                                         <div class="panel-body">
                                             <div class="handler-object-features list-group"></div>
@@ -223,6 +230,24 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="panel panel-success">
+                                        <div class="panel-heading slidable clickable">
+                                            Níveis de Acesso
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="handler-object-accessLevels list-group"></div>
+                                            <div class="text-center handler-nested-add-select-accessLevels clickable"><span class="glyphicon glyphicon-plus-sign add-glyph"></span></div>
+                                            <div class=""></div>
+                                            <div class="handler-nested-template-accessLevels list-group-item" style="display:none">
+                                                <label class="number-order-placeholder"></label><span></span>
+                                                <a class="trash handler-nested-delete-current clickable pull-right"><span class="glyphicon glyphicon-trash"></span></a>
+                                                <div class="input-group">
+                                                    <span for="handler-object-accessLevels-name" class="input-group-addon">Nome:</span>
+                                                    <input type="text" class="form-control handler-object-accessLevels-name handler-field" placeholder="Nome"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -237,7 +262,7 @@
                     <div class="col-md-5">
                         <div class="panel panel-default extensible-panel table-responsive">
                             <div class="panel-heading">
-                                <span class="glyphicon glyphicon-list"></span>Configuração
+                                <span class="glyphicon glyphicon-list clickable slidable"> Configuração</span>
                                 <div class="pull-right action-buttons">
                                     <div class="btn-group pull-right">
                                         <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
@@ -245,7 +270,7 @@
                                         </button>
                                         <ul class="dropdown-menu slidedown sortable">
                                             <li><a class="clickable handler-add-select"><span class="glyphicon glyphicon-plus-sign"></span>Adicionar</a></li>
-                                            <li><a class="trash clickable"><span class="glyphicon glyphicon-trash"></span>Deletar</a></li>
+                                            <li><a class="trash clickable handler-delete-multiple"><span class="glyphicon glyphicon-trash "></span>Deletar</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -257,7 +282,7 @@
                                 <div class="text-center handler-add-select clickable"><span class="glyphicon glyphicon-plus-sign add-glyph"></span></div>
                                 <div class="handler-template-obj list-group-item" style="display:none">
                                         
-                                        <input type="checkbox" class="checkbox"/>
+                                        <input type="checkbox" class="checkbox handler-checkbox"/>
                                         <label for="checkbox" class="clickable handler-id-name"></label>
                                         
                                         <div class="pull-right action-buttons">
@@ -308,7 +333,7 @@
                     <div class="col-md-5">
                         <div class="panel panel-default extensible-panel table-responsive">
                             <div class="panel-heading">
-                                <span class="glyphicon glyphicon-list"></span>Configuração
+                                <span class="glyphicon glyphicon-list clickable slidable"> Configuração</span>
                                 <div class="pull-right action-buttons">
                                     <div class="btn-group pull-right">
                                         <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
@@ -316,7 +341,7 @@
                                         </button>
                                         <ul class="dropdown-menu slidedown sortable">
                                             <li><a class="clickable handler-add-select"><span class="glyphicon glyphicon-plus-sign"></span>Adicionar</a></li>
-                                            <li><a class="trash clickable"><span class="glyphicon glyphicon-trash"></span>Deletar</a></li>
+                                            <li><a class="trash clickable handler-delete-multiple"><span class="glyphicon glyphicon-trash "></span>Deletar</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -328,7 +353,7 @@
                                 <div class="text-center handler-add-select clickable"><span class="glyphicon glyphicon-plus-sign add-glyph"></span></div>
                                 <div class="handler-template-obj list-group-item" style="display:none">
                                         
-                                        <input type="checkbox" class="checkbox"/>
+                                        <input type="checkbox" class="handler-checkbox"/>
                                         <label for="checkbox" class="clickable handler-id-username"></label>
                                         
                                         <div class="pull-right action-buttons">
@@ -382,9 +407,12 @@
             
             <!-- IMPORT-EXPORT -->
             
-            <div class="col-xs-8 col-xs-offset-2 col-md-4 col-md-offset-4 btn-group">
+            <div class="col-xs-8 col-xs-offset-2 col-md-4 col-md-offset-4 btn-group configuration-import-export">
                 <button id="import-configuration" class="btn btn-lg btn-success col-xs-6">Importar</button>
-                <button id="export-configuration" class="btn btn-lg btn-info col-xs-6">Exportar</button>
+                <div style="display:none">
+                    <input id="export-configuration-container" type="file" style="display:none">
+                </div>
+                <button id="export-configuration-button" type="button" class="btn btn-lg btn-info col-xs-6">Exportar</button>
             </div>
             
             <!-- MESSAGE-CONTAINER-->

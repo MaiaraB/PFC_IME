@@ -41,9 +41,11 @@ else{
     LayerHandler.constructor = LayerHandler;
     LayerHandler.prototype.mapping = function(){
         return { name : "",
-            wmsId : "",style : "",opacity : "",features : [{name : "",wmsId :""}]};
+            wmsId : "",style : "",opacity : "",features : [{name : "",wmsId :""}],accessLevels: [{name : ""}]};
     };
     LayerHandler.prototype.obeyRestrictions = function(matchObject){
+        console.log("MATCH");
+        console.log(matchObject);
         this.clearErrorHighlight();
         if(typeof matchObject === 'undefined'){
             return false;
@@ -68,13 +70,28 @@ else{
         }
         var i = 0,ii=matchObject['features'].length;
         var featuresViewIds = this.objectDiv.find(".handler-object-features-wmsId");
-        console.log(featuresViewIds);
         for(;i<ii;i++){
             var feature = matchObject['features'][i];
             
             if(feature['wmsId'] === ''){
                 try{
                     $(featuresViewIds[i]).addClass("handler-error-highlight");
+                }
+                catch(err){
+                    console.log("Could not highlight field");
+                }
+                return false;
+            }
+        }
+        
+        var i = 0,ii=matchObject['accessLevels'].length;
+        var accessLevelsNames = this.objectDiv.find(".handler-object-accessLevels-name");
+        for(;i<ii;i++){
+            var accessLevel = matchObject['accessLevels'][i];
+            
+            if(accessLevel['name'] === ''){
+                try{
+                    $(accessLevelsNames[i]).addClass("handler-error-highlight");
                 }
                 catch(err){
                     console.log("Could not highlight field");
