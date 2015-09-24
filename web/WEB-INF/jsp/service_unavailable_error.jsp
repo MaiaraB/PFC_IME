@@ -12,6 +12,21 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <h1>Service is not available at the time</h1>
+        <div class="cover">
+          <div class="cover-image"></div>
+            <div class="container">
+              <div class="row">
+                <div class="col-md-12 text-center">
+                  <h1>404
+                  <br>
+                  </h1>
+                  <p>Desculpe, a página não está disponível.</p>
+                  <br>
+                  <br>
+                  <a href="" class="btn btn-lg btn-default">Retornar<br></a>
+                </div>
+              </div>
+            </div>
+          </div>
     </body>
 </html>

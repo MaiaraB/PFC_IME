@@ -41,18 +41,30 @@ public class UserManager {
     }
     
     public void create(User user) throws HibernateException{
-        this.session.save(user);
+        if(this.session.get(User.class,user.getUsername())!=null){
+            throw new ObjectDuplicateException("There's an user with the specified username");
+        }
+        this.session.merge(user);
     }
     
-    public User getUserByUsername(String username) throws HibernateException{
-        return (User) this.session.get(User.class, username);
+    public User getById(String username) throws HibernateException{
+        final User user =  (User) this.session.get(User.class, username);
+        if(user == null){
+            throw new ObjectNotFoundException("No such User with the specified username");
+        }
+        return user;
     }
     
     public void update(User user) throws HibernateException{
-        this.session.update(user);
+        this.getById(user.getUsername());
+        this.session.merge(user);
     }
     
-    public void delete(User user) throws HibernateException{
+    public void delete(String username) throws HibernateException{
+        final User user = (User) this.session.get(User.class, username);
+        if(user == null){
+            throw new ObjectNotFoundException("No such User with the specified username");
+        }
         this.session.delete(user);
     }
     
@@ -65,7 +77,6 @@ public class UserManager {
                 return o1.getUsername().compareTo(o2.getUsername());
             }
         });
-        
         for(User user : allUsers){
             Hibernate.initialize(user);
         }

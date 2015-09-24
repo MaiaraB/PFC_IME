@@ -4,14 +4,20 @@ package br.eb.ime.pfc.domain;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 /**
@@ -43,7 +49,14 @@ public class Layer implements Serializable {
     //@OneToMany(mappedBy = "layer",targetEntity=Feature.class,fetch=FetchType.EAGER,cascade =CascadeType.ALL)
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name="features")
+    @OrderColumn(name = "feature_index")
     private final Set<Feature> features;
+    
+    @ManyToMany(fetch=FetchType.LAZY,cascade = CascadeType.REFRESH)
+    @JoinTable(name = "ACCESSLEVEL_LAYER",
+                inverseJoinColumns = {@JoinColumn(name="ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")},
+                joinColumns = {@JoinColumn(name="LAYER_ID",referencedColumnName="LAYER_ID",nullable=false)})
+    private final Set<AccessLevel> accessLevels;
     
     /*
     * Representation Invariant:
@@ -69,6 +82,7 @@ public class Layer implements Serializable {
         this.style = DEFAULT_STYLE;
         this.opacity = DEFAULT_OPACITY;
         this.features = new LinkedHashSet<>();
+        this.accessLevels = new HashSet<>();
     }
     
     protected Layer(){
@@ -77,6 +91,7 @@ public class Layer implements Serializable {
         this.style = DEFAULT_STYLE;
         this.opacity = DEFAULT_OPACITY;
         this.features = new LinkedHashSet<>();
+        this.accessLevels = new HashSet<>();
     }
     
     /**

@@ -2,6 +2,7 @@ package br.eb.ime.pfc.domain;
 
 import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -28,9 +29,13 @@ public class User implements Serializable,Cloneable{
     
     @Column(name = "PASSWORD") private final String password;
     
-    @ManyToOne(optional=false)
+    private String name;
+    private String email;
+    private String telephone;
+    
+    @ManyToOne(optional=false,cascade = CascadeType.REFRESH)
     @JoinColumn(name = "ACCESSLEVEL_ID",referencedColumnName="ACCESSLEVEL_ID")
-    private final AccessLevel accessLevel;
+    private AccessLevel accessLevel;
     
     /*
     * Representation Invariant:
@@ -52,6 +57,9 @@ public class User implements Serializable,Cloneable{
         this.username = username;
         this.password = password;
         this.accessLevel = accessLevel;
+        this.name = "";
+        this.telephone = "";
+        this.email = "";
         checkRep();
     }
     
@@ -59,6 +67,9 @@ public class User implements Serializable,Cloneable{
         this.username = null;
         this.password = null;
         this.accessLevel = null;
+        this.name = "";
+        this.telephone = "";
+        this.email = "";
     }
     
     /**
@@ -94,6 +105,33 @@ public class User implements Serializable,Cloneable{
         return this.accessLevel;
     }
     
+    public void setAccessLevel(AccessLevel accessLevel){
+        this.accessLevel = accessLevel;
+    }
+    
+    public String getName(){
+        return this.name;
+    }
+    
+    public void setName(String name){
+        this.name = name;
+    }
+    
+    public String getEmail(){
+        return this.email;
+    }
+    
+    public void setEmail(String email){
+        this.email = email;
+    }
+    
+    public String getTelephone(){
+        return this.telephone;
+    }
+    
+    public void setTelephone(String telephone){
+        this.telephone = telephone;
+    }
     @Override
     public boolean equals(Object o){
         if(o instanceof User){

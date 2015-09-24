@@ -5,8 +5,6 @@
  */
 package br.eb.ime.pfc.controllers;
 
-import br.eb.ime.pfc.domain.AccessLevel;
-import br.eb.ime.pfc.domain.User;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -32,11 +31,13 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * If the user has access denied, a Http 401 code is sent.
  */
-@WebServlet(name = "WMSProxyServlet", urlPatterns = {"/wms"})
+@WebServlet(name = "WMSProxyServlet", urlPatterns = {"/wms","/wms/*"})
 public class WMSProxyServlet extends HttpServlet {
-    private static final String GEOSERVER_URL = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/rio2016/wms?";
+    private static final String GEOSERVER_URL = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/wms?";
     private static final int REDIRECT_BUFFER_SIZE = 1024;
-    //private static final String GEOSERVER_UFL = http://localhost/geoserver/rio2016/wms?
+    //private static final String GEOSERVER_URL = "http://localhost/geoserver/rio2016/wms?";
+    
+    
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -49,12 +50,23 @@ public class WMSProxyServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        if(authenticateLayers(request,response)){
-            redirectStream(request,response);
+        final Collection<String> layersIds = (Collection<String>) request.getSession().getAttribute("layers");
+        if(layersIds == null){
+            response.sendError(401);
         }
         else{
-            response.sendError(401);
+            if(authenticateLayers(request,response,layersIds)){
+                try{
+                    request.getServletContext().log("Redirected");
+                    redirectStream(request,response);
+                }
+                catch(RuntimeException e){
+                    response.sendError(500);
+                }
+            }
+            else{
+                response.sendError(401);
+            }
         }
     }
 
@@ -62,33 +74,29 @@ public class WMSProxyServlet extends HttpServlet {
      * Specify if the user in this session has access to the layers of this WMS request.
      * @param request servlet request
      * @param response servlet response
+     * @param layersIds
      * @return true if the user has access to the layers in its request parameters or false 
      * otherwise.
      */
-    protected boolean authenticateLayers(HttpServletRequest request, HttpServletResponse response){
-        final User user = (User) request.getSession().getAttribute("user");
-        
-        if(user == null){ //user isn't logged in
-            return false;
+    protected boolean authenticateLayers(HttpServletRequest request, HttpServletResponse response,Collection<String> layersIds){
+        final List<String> layerWmsIdsFromRequest = getLayerIdsFromRequest(request);
+        request.getServletContext().log("AUTHENTICATING"+layerWmsIdsFromRequest.size());
+        for(String layerId : layersIds){
+            request.getServletContext().log("CLAYER:"+layerId);
         }
-        else{ //user is logged in
-            
-            final List<String> layerWmsIds = getLayerIdsFromRequest(request);
-            
-            //User isn't trying to access any layer deny it
-            if(layerWmsIds.isEmpty()){
-                return false;
-            }
-            
-            final AccessLevel accessLevel = user.getAccessLevel();
-            for(String layerWmsId : layerWmsIds){
-                if(!accessLevel.hasAccessToLayer(layerWmsId)){
-                    return false;
-                }
-            }
-            
+        for(String str : layerWmsIdsFromRequest){
+            request.getServletContext().log("LAYER:"+str);
+        }
+        //User isn't trying to access any layer allow it
+        if(layerWmsIdsFromRequest.isEmpty()){
             return true;
         }
+        for(String layerWmsId : layerWmsIdsFromRequest){
+            if(!layersIds.contains(layerWmsId)){
+                return false;
+            }
+        }
+        return true;
     }
     
     /**
@@ -108,9 +116,7 @@ public class WMSProxyServlet extends HttpServlet {
                 layerParam = request.getParameter(param);
             }
         }
-
         final List<String> layerIds = new ArrayList<>();
-
         //Returns an empty list if there is no layer param
         if(layerParam == null){
             return layerIds;
@@ -125,7 +131,6 @@ public class WMSProxyServlet extends HttpServlet {
                 layerIds.add(layerURI);
             }
         }        
-
         return layerIds;
     }
     
@@ -135,8 +140,9 @@ public class WMSProxyServlet extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    protected void redirectStream(HttpServletRequest request, HttpServletResponse response){
-        final String urlName = GEOSERVER_URL + request.getQueryString();
+    protected void redirectStream(HttpServletRequest request, HttpServletResponse response) throws IOException{
+        final String urlName = GEOSERVER_URL + request.getRequestURI() + request.getQueryString();
+        request.getServletContext().log("REDIRECT:"+urlName);
         URL url = null;
         try{
             url = new URL(urlName);
@@ -145,11 +151,11 @@ public class WMSProxyServlet extends HttpServlet {
             //Internal error, the user will receive no data.
             return;
         }
-        
         HttpURLConnection conn = null;
         try{
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
+            conn.setDoOutput(true);
             response.setContentType(request.getContentType());
             conn.connect();
         }
@@ -157,8 +163,7 @@ public class WMSProxyServlet extends HttpServlet {
             return;
         }
         
-        try(InputStream is = conn.getInputStream();
-                OutputStream os = response.getOutputStream()){
+        try(InputStream is = conn.getInputStream();OutputStream os = response.getOutputStream()){
             byte[] buffer = new byte[REDIRECT_BUFFER_SIZE];
             int len;
             while ((len = is.read(buffer)) != -1) {

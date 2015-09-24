@@ -23,8 +23,16 @@
  */
 package br.eb.ime.pfc.filters;
 
+import br.eb.ime.pfc.domain.Layer;
+import br.eb.ime.pfc.domain.ObjectNotFoundException;
 import br.eb.ime.pfc.domain.User;
+import br.eb.ime.pfc.domain.UserManager;
+import br.eb.ime.pfc.hibernate.HibernateUtil;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -35,6 +43,11 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.bind.DatatypeConverter;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.context.internal.ManagedSessionContext;
 
 /**
  *
@@ -56,18 +69,103 @@ public class AuthenticationFilter implements Filter{
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest req = (HttpServletRequest) request;
-        HttpSession session = req.getSession(true);
-        User user = (User) session.getAttribute("user");
-        if(user == null){
-            HttpServletResponse resp = (HttpServletResponse) response;
-            resp.sendError(403);
+        final HttpServletRequest httpRequest = (HttpServletRequest) request;
+        final HttpServletResponse httpResponse = (HttpServletResponse) response;
+        final HttpSession session = httpRequest.getSession(true);
+        final String username = (String) session.getAttribute("user");
+        request.getServletContext().log("USERNAME: "+request.getParameter("username"));
+        request.getServletContext().log("PASSWORD: "+request.getParameter("password"));
+        if(username == null){
+            if(this.basicAuthentication(httpRequest,httpResponse)){
+                chain.doFilter(request, response);
+            }
+            else{
+                HttpServletResponse resp = (HttpServletResponse) response;
+                resp.sendError(403);
+            }
         }
         else{
             chain.doFilter(request, response);
         }
     }
-
+    
+    protected boolean authenticateUser(HttpServletRequest request,HttpServletResponse response,String username,String password){
+        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        final Session session = sessionFactory.openSession();
+        session.beginTransaction();
+        ManagedSessionContext.bind(session);
+        final UserManager userManager = new UserManager(session);
+        if(username.equals("")){//cannot be empty
+            return false;
+        }
+        String passwordDB = null;
+        Set<String> layersIds = new HashSet<>();
+        try{
+            final User user = userManager.getById(username);
+            for(Layer layer : user.getAccessLevel().getLayers()){
+                layersIds.add(layer.getWmsId());
+            }
+            passwordDB = user.getPassword();
+            session.getTransaction().commit();
+        }
+        catch(HibernateException | ObjectNotFoundException e){
+            session.getTransaction().rollback();
+        }
+        finally{
+            session.close();
+        }
+        
+        if(passwordDB != null && passwordDB.equals(password)){
+            //CACHE LAYERS
+            request.getSession().setAttribute("user", username);
+            request.getSession().setAttribute("layers", layersIds);
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    
+    protected boolean basicAuthentication(HttpServletRequest request,HttpServletResponse response){
+        final Enumeration<String> headers = request.getHeaderNames();
+        if(headers != null){
+            String authorizationHeader = null;
+            while(headers.hasMoreElements()){
+                final String header = headers.nextElement();
+                if(header.equalsIgnoreCase("authorization")){
+                    authorizationHeader = request.getHeader(header);
+                    break;
+                }
+            }
+            if(authorizationHeader == null || authorizationHeader.toUpperCase().contains("Basic")){
+                return false;
+            }
+            else{
+                request.getServletContext().log("HEADER"+authorizationHeader);
+                final String base64EncodedData = authorizationHeader.replace("Basic", "").replace(" ", "");
+                byte[] decodedData = DatatypeConverter.parseBase64Binary(base64EncodedData);
+                final String decodedString;
+                try {
+                    decodedString = new String(decodedData,"UTF-8");
+                } catch (UnsupportedEncodingException ex) {
+                    return false;
+                }
+                final String[] usernamePasswordArray = decodedString.split(":");
+                if(usernamePasswordArray.length != 2){
+                    return false;
+                }
+                else{
+                    final String username = usernamePasswordArray[0];
+                    final String password = usernamePasswordArray[1];
+                    return this.authenticateUser(request,response,username, password);
+                }
+            }
+        }
+        else{
+            return false;
+        }
+    }
+    
     @Override
     public void destroy() {        
     }
