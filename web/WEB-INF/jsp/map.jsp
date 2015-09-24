@@ -46,7 +46,8 @@
         <div class="navbar-offset"></div>
         <div id="map">
         </div>
-        <div id="popup" class="ol-popup">
+        <div id="progress" class="progress-bar"></div>
+        <div id="popup" class="ol-popup" style="display:none">
             <a href="#" id="popup-closer" class="ol-popup-closer"></a>
             <div id="popup-content" class="table-responsive ol-popup-content"></div>
         </div>
@@ -100,8 +101,7 @@
         <div class="mini-submenu mini-submenu-left pull-left">
             <i class="fa fa-list-alt"></i>
         </div>
-        <div id="popup" class="">
-        </div>
+        
         <!--%@include file="/WEB-INF/jspf/wms_openlayers.jspf" %-->
         <script src="${pageContext.request.contextPath}/resources/js/mapcontrol.js"></script>
     </body>

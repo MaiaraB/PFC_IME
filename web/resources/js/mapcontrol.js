@@ -21,6 +21,7 @@ mapControl.loadWMSService = function (layers){
     this.layers = layers;
     this.map = this.map || this.createMap();
     this.addBaseLayers();
+    this.renderProgressBar();
     this.showBaseLayer("Aerial");
     this.addLayers(this.layers);
     this.configureLayerBar();
@@ -53,15 +54,20 @@ mapControl.getLayersFromServer = function(){
 mapControl.addBaseLayers = function(){
     var i, ii;
     for (i = 0, ii = this.baseLayerStyles.length; i < ii; ++i) {
+        var source = new ol.source.BingMaps({
+            key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3',
+            imagerySet: this.baseLayerStyles[i],
+            maxZoom: 19
+        });
+        var self = this;
+        source.on('tileloadstart', function(event) {self.progress.addLoading();});
+        source.on('tileloadend', function(event) {self.progress.addLoaded();});
+        source.on('tileloaderror', function(event) {self.progress.addLoaded();});
         var baseLayer = (new ol.layer.Tile({
             visible: false,
             preload: Infinity,
             type : 'base',
-            source: new ol.source.BingMaps({
-              key: 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3',
-              imagerySet: this.baseLayerStyles[i],
-              maxZoom: 19
-            })  
+            source: source 
         }));
         this.baseLayers.push(baseLayer);
         this.map.addLayer(baseLayer);
@@ -72,17 +78,23 @@ mapControl.addLayers = function(layers){
     var i,ii;
     for(i = 0, ii = layers.length;i<ii;i++){
         var layer = layers[i];
+        var source = new ol.source.TileWMS(({
+            url: this.layerWMSURL,
+            params: { 
+                STYLES : layer.style,
+                LAYERS: layer.wmsId
+            }
+        }));
+        var self = this;
+        source.on('tileloadstart', function(event) {self.progress.addLoading();});
+        source.on('tileloadend', function(event) {self.progress.addLoaded();});
+        source.on('tileloaderror', function(event) {self.progress.addLoaded();});
+        
         var olLayer = new ol.layer.Tile({
             visible: false,
             preload: Infinity,
             serverType: 'geoserver',
-            source: new ol.source.TileWMS(({
-                url: this.layerWMSURL,
-                params: { 
-                    STYLES : layer.style,
-                    LAYERS: layer.wmsId
-                }
-            })),
+            source: source,
             opacity : layer.opacity
         });
         olLayer.layerObj = layer;
@@ -134,7 +146,7 @@ mapControl.configurePopup = function(){
     var container = document.getElementById("popup");
     var content = $('#popup-content');
     var closer = $('#popup-closer');
-
+    $(container).show();
     /**
      * Add a click handler to hide the popup.
      * @return {boolean} Don't follow the href.
@@ -154,7 +166,7 @@ mapControl.configurePopup = function(){
         duration: 250
       }
     }));
-
+    overlay.setPosition(undefined);
     this.map.addOverlay(overlay);
     /**
     * Add a click handler to the map to render the popup.
@@ -244,3 +256,76 @@ mapControl.getFeatureInfo = function(evt,obj){
     }
     return hasFeatures;
 };
+
+//PROGRESS BAR
+mapControl.renderProgressBar = function() {
+
+    /**
+     * Renders a progress bar.
+     * @param {Element} el The target element.
+     * @constructor
+     */
+    function Progress(el) {
+        this.el = el;
+        this.loading = 0;
+        this.loaded = 0;
+    };
+
+    /**
+     * Increment the count of loading tiles.
+     */
+    Progress.prototype.addLoading = function() {
+        if (this.loading === 0) {
+            this.show();
+        }
+        ++this.loading;
+        this.update();
+    };
+
+    /**
+     * Increment the count of loaded tiles.
+     */
+    Progress.prototype.addLoaded = function() {
+        setTimeout(function() {
+            ++this.loaded;
+            this.update();
+        }.bind(this), 100);
+    };
+
+    /**
+     * Update the progress bar.
+     */
+    Progress.prototype.update = function() {
+        var width = (this.loaded / this.loading * 100).toFixed(1) + '%';
+        this.el.style.width = width;
+        console.log(width);
+        if (this.loading === this.loaded) {
+            this.loading = 0;
+            this.loaded = 0;
+            setTimeout(this.hide.bind(this), 500);
+      }
+    };
+
+    /**
+     * Show the progress bar.
+     */
+    Progress.prototype.show = function() {
+        this.el.style.visibility = 'visible';
+        console.log("mostrar");
+    };
+
+    /**
+     * Hide the progress bar.
+     */
+    Progress.prototype.hide = function() {
+        if (this.loading === this.loaded) {
+            this.el.style.visibility = 'hidden';
+            this.el.style.width = 0;
+            console.log("esconder");
+        }
+    };
+
+    this.progress = new Progress(document.getElementById('progress'));
+};
+
+

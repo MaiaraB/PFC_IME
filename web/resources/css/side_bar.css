@@ -59,3 +59,18 @@ and open the template in the editor.
     max-height: 50%;
     height : 50%;
 }
+
+.progress-bar {
+    position: absolute;
+    display: inline-block;
+    z-index: 40 !important;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(0, 196, 131, .6);
+    width: 0;
+    transition: width 250ms;
+    opacity: 1;
+    border: white;
+    overflow: hidden;
+}
