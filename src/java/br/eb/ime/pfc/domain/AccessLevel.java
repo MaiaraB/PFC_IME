@@ -28,7 +28,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "access_levels")
-public class AccessLevel implements Serializable,Cloneable{
+public class AccessLevel implements Serializable{
     
     private static final long serialVersionUID = 1L;
     
@@ -54,12 +54,33 @@ public class AccessLevel implements Serializable,Cloneable{
     
     //Constructors
     
+    public static AccessLevel makeAccessLevel(String name) throws ObjectInvalidIdException{
+        if(isValidId(name)){
+            return new AccessLevel(name);
+        }
+        else{
+            throw new ObjectInvalidIdException("Could not create AccessLevel because it's not a valid name");
+        }
+    }
+    
+    public static boolean isValidId(String name){
+        if(name.equals("")){
+            return false;
+        }
+        else if(!name.equals(name.trim())){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+    
     /**
      * Creates an Access Level with the specified name.
      * @param name 
      * Requires: name must not be empty
      */
-    public AccessLevel(String name){
+    protected AccessLevel(String name){
         this.name = name;
         this.layers = new LinkedList<>();
         this.users = new ArrayList<>();
@@ -191,14 +212,5 @@ public class AccessLevel implements Serializable,Cloneable{
         public UserRepetitionException(String message){
             super(message);
         }
-    }
-    
-    @Override
-    public AccessLevel clone(){
-        final AccessLevel accessLevelClone = new AccessLevel(this.name);
-        for(Layer layer : this.layers){
-            accessLevelClone.addLayer(layer.clone());
-        }
-        return accessLevelClone;
     }
 }

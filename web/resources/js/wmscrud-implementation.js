@@ -43,21 +43,26 @@ else{
         return { name : "",
             wmsId : "",style : "",opacity : "",features : [{name : "",wmsId :""}],accessLevels: [{name : ""}]};
     };
+    
     LayerHandler.prototype.obeyRestrictions = function(matchObject){
-        console.log("MATCH");
-        console.log(matchObject);
         this.clearErrorHighlight();
         if(typeof matchObject === 'undefined'){
             return false;
         }
-        if(matchObject['wmsId'] === ""){
+        if((matchObject['wmsId'] === "") || (matchObject['wmsId'].trim().indexOf(" ") > -1)){
             this.objectDiv.find(".handler-object-wmsId").addClass("handler-error-highlight");
             return false;
         }
+        else{
+            matchObject['wmsId'] = matchObject['wmsId'].trim();
+        }
         try{
-            if(matchObject['opacity'] === ""){
+            if((typeof matchObject['opacity'] === 'undefined' )|| (matchObject['opacity'] === "")){
                 this.objectDiv.find(".handler-object-opacity").addClass("handler-error-highlight");
                 return false;
+            }
+            else{
+                matchObject['opacity'] = matchObject['opacity'].trim();
             }
             var opacity = parseFloat(matchObject['opacity']);
             if(opacity < 0 || opacity > 1){
@@ -82,6 +87,9 @@ else{
                 }
                 return false;
             }
+            else if(typeof feature['wmsId'] !== 'undefined'){
+                feature['wmsId'] = feature['wmsId'].trim();
+            }
         }
         
         var i = 0,ii=matchObject['accessLevels'].length;
@@ -97,6 +105,9 @@ else{
                     console.log("Could not highlight field");
                 }
                 return false;
+            }
+            else{
+                accessLevel['name'] = accessLevel['name'].trim(); 
             }
         }
         return true;
@@ -124,6 +135,9 @@ else{
             this.objectDiv.find(".handler-object-name").addClass("handler-error-highlight");
             return false;
         }
+        else{
+            matchObject['name'] = matchObject['name'].trim();
+        }
         var layers = matchObject['layers'];
         var layerViewIds = this.objectDiv.find(".handler-object-layers-wmsId");
         var i = 0,ii=layers.length;
@@ -137,6 +151,9 @@ else{
                     console.log("Could not highlight layer of access level");
                 }
                 return false;
+            }
+            else{
+                layer['wmsId'] = layer['wmsId'].trim();
             }
         }
         return true;
@@ -160,7 +177,7 @@ else{
         if(typeof matchObject === 'undefined'){
             return false;
         }
-        if(matchObject['username'] === ''){
+        if((matchObject['username'] === '') || (matchObject['username'].trim().indexOf(" ") > -1)){
             this.objectDiv.find(".handler-object-username").addClass("handler-error-highlight");
             return false;
         }

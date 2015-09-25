@@ -150,7 +150,7 @@ public class LayerHandlerServlet extends HttpServlet {
     }
     
     public void create(HttpServletRequest request,HttpServletResponse response) throws IOException{
-        final String wmsId = request.getParameter("wmsId");
+        String wmsId = request.getParameter("wmsId");
         if(wmsId != null){
             final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
             try{
@@ -213,7 +213,8 @@ public class LayerHandlerServlet extends HttpServlet {
         if(name == null || wmsId == null || wmsId.equals("")){
             throw new ObjectNotFoundException("No id or name attribute specified");
         }
-        final Layer layer = new Layer(name,wmsId);
+        
+        final Layer layer = Layer.makeLayer(name, wmsId);
         
         String style = request.getParameter("style");
         if(style != null){
@@ -249,7 +250,7 @@ public class LayerHandlerServlet extends HttpServlet {
             if(accessLevelName.equals("")){
                 throw new RuntimeException("");
             }
-            layer.addAccessLevel(new AccessLevel(accessLevelName));
+            layer.addAccessLevel(AccessLevel.makeAccessLevel(accessLevelName));
             accessLevelIndex += 1;
         }
         return layer;

@@ -25,7 +25,6 @@ package br.eb.ime.pfc.controllers;
 
 import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.AccessLevelManager;
-import br.eb.ime.pfc.domain.LayerManager;
 import br.eb.ime.pfc.domain.ObjectDuplicateException;
 import br.eb.ime.pfc.domain.ObjectNotFoundException;
 import br.eb.ime.pfc.domain.User;
@@ -221,7 +220,7 @@ public class UserHandlerServlet extends HttpServlet {
         }
         final AccessLevelManager accessLevelManager = new AccessLevelManager(HibernateUtil.getCurrentSession());
         final AccessLevel accessLevel = accessLevelManager.getById(accessLevelName);
-        final User user = new User(username,password,accessLevel);
+        final User user = User.makeUser(username,password,accessLevel);
         //OPTIONAL PARAMETERS
         String email = request.getParameter("email");
         String name = request.getParameter("name");

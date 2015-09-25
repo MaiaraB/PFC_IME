@@ -20,7 +20,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "users")
-public class User implements Serializable,Cloneable{
+public class User implements Serializable{
     
     private static final long serialVersionUID = 1L;
     
@@ -44,6 +44,27 @@ public class User implements Serializable,Cloneable{
     * accessLevel must not be null;
     */
     
+    public static User makeUser(String username,String password,AccessLevel accessLevel){
+        if(isValid(username)){
+            return new User(username,password,accessLevel);
+        }
+        else{
+            throw new ObjectInvalidIdException("Could not create User because the specified username is invalid");
+        }
+    }
+    
+    public static boolean isValid(String username){
+        if(username.equals("")){
+            return false;
+        }
+        if(username.contains(" ") || username.contains("\n")){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+    
     /**
      * Constructs a user with the specified username, password and Access Level
      * @param username
@@ -53,7 +74,7 @@ public class User implements Serializable,Cloneable{
      * @param accessLevel 
      *      The access level used by this user.
      */
-    public User(String username,String password,AccessLevel accessLevel){
+    protected User(String username,String password,AccessLevel accessLevel){
         this.username = username;
         this.password = password;
         this.accessLevel = accessLevel;
@@ -147,11 +168,5 @@ public class User implements Serializable,Cloneable{
     public int hashCode() {
         return Objects.hash(this.username);
     }
-    
-    @Override
-    public User clone(){
-        return new User(this.username,
-                        this.password,
-                        this.accessLevel.clone());
-    }
+
 }

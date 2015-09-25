@@ -67,6 +67,27 @@ public class Layer implements Serializable {
     
     //CONSTRUCTORS
     
+    public static Layer makeLayer(String name,String wmsId) throws ObjectInvalidIdException{
+        if(isValidId(wmsId)){
+            return new Layer(name,wmsId);
+        }
+        else{
+            throw new ObjectInvalidIdException("Layer could not be created: doesn't have a valid wmsId.");
+        }
+    }
+    
+    public static boolean isValidId(String wmsId){
+        if(wmsId.equals("")){
+            return false;
+        }
+        else if(wmsId.contains(" ") || wmsId.contains("\n")){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+    
     /**
      * Creates a WMS Layer with the specified name and wmsId.
      * The style to be used is the default. To set the style see setStyle() method.
@@ -76,7 +97,7 @@ public class Layer implements Serializable {
      * @param wmsId 
      * The identifier of this Layer in the WMS service.
      */
-    public Layer(String name,String wmsId){
+    protected Layer(String name,String wmsId){
         this.name = name;
         this.wmsId = wmsId;
         this.style = DEFAULT_STYLE;
@@ -192,17 +213,6 @@ public class Layer implements Serializable {
     
     public void setStyle(String style){
         this.style = style;
-    }
-    
-    @Override
-    public Layer clone(){
-        final Layer layerClone = new Layer(this.name,this.wmsId);
-        layerClone.opacity = this.opacity;
-        layerClone.style = this.style;
-        for(Feature feature : this.features){
-            layerClone.addFeature(feature.clone());
-        }
-        return layerClone;
     }
     
     /**

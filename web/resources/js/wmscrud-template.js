@@ -83,7 +83,6 @@ WMSCRUD.ObjectHandler.prototype.requestAction = function(requestURL,actionSubjec
        data : dataToSend || "",
        timeout : self.REQUESTTIMEOUT
     }).done(function(data,textStatus,jqXHR){
-        console.log(data);
        actionSubject.state = self.ACTIONSUBJECTSTATE.OK;
        successCallBack(self,data,textStatus,jqXHR);
     }).fail(function(jqXHR,textStatus){
@@ -101,7 +100,7 @@ WMSCRUD.ObjectHandler.prototype.requestAction = function(requestURL,actionSubjec
 WMSCRUD.ObjectHandler.prototype.readObjs = function(){
     this.loadObjsList.state = this.ACTIONSUBJECTSTATE.UNDEFINED;
     var loadURL = this.url + "?action=" + this.ACTIONS.READALL;
-    this.requestAction(loadURL,this.readObjs,"",this.loadObjsList,this.failCallBack);
+    this.requestAction(loadURL,this.readObjs,"",this.loadObjsList);
 };
 
 WMSCRUD.ObjectHandler.prototype.loadObjsList = function(self,data){
@@ -234,7 +233,6 @@ WMSCRUD.ObjectHandler.prototype.save = function(){
         console.log("Object does not obey restrictions");
         this.save.state = this.ACTIONSUBJECTSTATE.RESTRICTIONVIOLATION;
         this.notify(self.save);
-        console.log(this.observers[self.save]);
         return;
     }
 
@@ -250,7 +248,7 @@ WMSCRUD.ObjectHandler.prototype.save = function(){
             self.save.state = self.ACTIONSUBJECTSTATE.OK;
         }
         else if(data === self.DATARESPONSESTATE.NOTFOUND){
-            self.add.state = self.ACTIONSUBJECTSTATE.NOTFOUND;
+            self.save.state = self.ACTIONSUBJECTSTATE.NOTFOUND;
         }
         else{
             self.save.state = self.ACTIONSUBJECTSTATE.ERROR;
@@ -269,12 +267,13 @@ WMSCRUD.ObjectHandler.prototype.delete = function(objIds){
     var self = this;
     self.delete.state = this.ACTIONSUBJECTSTATE.UNDEFINED;        
     var deleteURL = this.url + "?action=" + this.ACTIONS.DELETE;
-    var successCallBack = function(self,data){
+    var successCallBack = function(self,data,textStatus,jqXHR){
+        console.log("DATA:",data);
         if(typeof data !== 'undefined' && data === self.DATARESPONSESTATE.OK){
             self.delete.state = self.ACTIONSUBJECTSTATE.OK;
         }
         else if(data === self.DATARESPONSESTATE.NOTFOUND){
-            self.add.state = self.ACTIONSUBJECTSTATE.NOTFOUND;
+            self.delete.state = self.ACTIONSUBJECTSTATE.NOTFOUND;
         }
         else{
             self.delete.state = self.ACTIONSUBJECTSTATE.ERROR;

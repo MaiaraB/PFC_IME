@@ -66,18 +66,22 @@ else{
                 objectHandler.clearObjectDiv();
                 objectHandler.saveState = false;
                 changeSaveAddView();
-                clearErrorHighlight();
+                objectHandler.clearErrorHighlight();
              });
          });
         var i = 0,ii = nestedElements.length;
-        var nestedAddSelect = {};
+        var nestedAddSelect = [];
         for(;i<ii;i++){
             nestedAddSelect[i] = panel.find(".handler-nested-add-select-"+nestedElements[i]).first();
             nestedAddSelect[i].get(0).nested = nestedElements[i];
             
-            var nestedElementDeleteFunction = function(nestedElement){
-                var layersNestedDeleteCurrent = objectHandler.objectDiv.find(".handler-nested-delete-current");
+            var nestedElementDeleteFunction = function(nestedElement,container){
+                if(typeof container === 'undefined'){
+                    container = objectHandler.objectDiv;
+                }
+                var layersNestedDeleteCurrent = $(container).find(".handler-nested-delete-current");
                 $.each(layersNestedDeleteCurrent,function(index){
+                    layersNestedDeleteCurrent.unbind("click");
                     layersNestedDeleteCurrent.click(function(event){
                         $(this).parents(".handler-nested-copy-"+nestedElement).first().remove();
                     });
@@ -93,14 +97,17 @@ else{
                 copy.addClass("handler-nested-copy-"+nestedElement);
                 copy.show();
                 handlerNested.append(copy);
-                nestedElementDeleteFunction(nestedElement);
+                nestedElementDeleteFunction(nestedElement,copy);
             });
-
         }
+        
         objectHandler.attach(objectHandler.loadObj,function(state){
-            var i = 0,ii = nestedAddSelect.length;
-            for(;i<ii;i++){
-                nestedElementDeleteFunction(nestedAddSelect[i].get(0).nested);
+            if(state === objectHandler.ACTIONSUBJECTSTATE.OK){
+                console.log("NESTED"+nestedAddSelect.length);
+                var i = 0,ii = nestedAddSelect.length;
+                for(;i<ii;i++){
+                    nestedElementDeleteFunction(nestedAddSelect[i].get(0).nested);
+                }
             }
         });
         
@@ -260,11 +267,8 @@ else{
                 case objectHandler.ACTIONSUBJECTSTATE.OK:
                     alertMessage("Sucesso: ","Item adicionado com sucesso",alertMessage.importance.SUCCESS);
                     break;
-                case objectHandler.ACTIONSUBJECTSTATE.ERROR:
-                    alertMessage("Erro: ","Um problema ocorreu ao processar sua requisição",alertMessage.importance.DANGER);
-                    break;
                 case objectHandler.ACTIONSUBJECTSTATE.DUPLICATE:
-                    alertMessage("Erro: ","Um item com mesmo identificador já foi adicionado",alertMessage.importance.DANGER);
+                    alertMessage("Erro: ","Um item com mesmo identificador já foi adicionado",alertMessage.importance.WARNING);
                     break;
                 case objectHandler.ACTIONSUBJECTSTATE.RESTRICTIONVIOLATION:
                     alertMessage("Aviso: ","Não foi possível adicionar o item pois há campos preenchidos incorretamente",alertMessage.importance.WARNING);
@@ -272,7 +276,11 @@ else{
                 case objectHandler.ACTIONSUBJECTSTATE.TIMEOUT:
                     alertMessage("Erro: ","O servidor não respondeu à requisição",alertMessage.importance.DANGER);
                     break;
+                case objectHandler.ACTIONSUBJECTSTATE.ERROR:
+                    alertMessage("Erro: ","Um problema ocorreu ao processar sua requisição",alertMessage.importance.DANGER);
+                    break;
                 default:
+                    alertMessage("Erro: ","Um problema ocorreu ao processar sua requisição",alertMessage.importance.DANGER);
                     break;
             }
         });
@@ -294,6 +302,7 @@ else{
                     alertMessage("Erro: ","O servidor não respondeu à requisição",alertMessage.importance.DANGER);
                     break;
                 default:
+                    alertMessage("Erro: ","Um problema ocorreu ao processar sua requisição",alertMessage.importance.DANGER);
                     break;
             }
         });
@@ -312,6 +321,7 @@ else{
                     alertMessage("Erro: ","O servidor não respondeu à requisição",alertMessage.importance.DANGER);
                     break;
                 default:
+                    alertMessage("Erro: ","Um problema ocorreu ao processar sua requisição",alertMessage.importance.DANGER);
                     break;
             }
         });

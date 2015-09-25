@@ -81,28 +81,28 @@ public class HibernateUtil {
         session.beginTransaction();
         
         //AccessLevel
-        AccessLevel operacional = new AccessLevel("operacional");
-        AccessLevel estrategico = new AccessLevel("estrategico");
-        AccessLevel tatico = new AccessLevel("tatico");
+        AccessLevel operacional =  AccessLevel.makeAccessLevel("operacional");
+        AccessLevel estrategico = AccessLevel.makeAccessLevel("estrategico");
+        AccessLevel tatico = AccessLevel.makeAccessLevel("tatico");
         //User
-        User userTatico = new User("falcon","123",tatico);
-        User userOperacional = new User("wolf","123",operacional);
-        User userEstrategico = new User("lion","123",estrategico);
+        User userTatico = User.makeUser("falcon","123",tatico);
+        User userOperacional = User.makeUser("wolf","123",operacional);
+        User userEstrategico = User.makeUser("lion","123",estrategico);
         //Layer
-        Layer bairros = new Layer("Bairros","rio2016:bairro_part");
+        Layer bairros =  Layer.makeLayer("Bairros","rio2016:bairro_part");
         bairros.setOpacity(0.5);
-        Layer locaisDeInteresse = new Layer("Locais de Interesse","rio2016:locais_de_interesse");
-        Layer atracoes = new Layer("Atrações","rio2016:atracoes");
-        Layer atracoesComite = new Layer("Atrações do Comitê","rio2016:atracoes_comite");
-        Layer competicoes = new Layer("Competições","rio2016:competicoes");
-        Layer hoteis = new Layer("Hotéis","rio2016:hoteis");
+        Layer locaisDeInteresse =  Layer.makeLayer("Locais de Interesse","rio2016:locais_de_interesse");
+        Layer atracoes =  Layer.makeLayer("Atrações","rio2016:atracoes");
+        Layer atracoesComite =  Layer.makeLayer("Atrações do Comitê","rio2016:atracoes_comite");
+        Layer competicoes =  Layer.makeLayer("Competições","rio2016:competicoes");
+        Layer hoteis =  Layer.makeLayer("Hotéis","rio2016:hoteis");
         hoteis.setStyle("pinpoint");
-        Layer lanchesRefeicoes = new Layer("Lanches e Refeições","rio2016:lanches_refeicoes");
-        Layer corpoBombeiros = new Layer("Corpo de Bombeiros","rio2016:corpo_de_bombeiros");
-        Layer delegacias = new Layer("Delegacias Policiais","rio2016:delegacias_policiais");
-        Layer metro = new Layer("Paradas de Metro","rio2016:paradas_metro");
-        Layer onibus = new Layer("Paradas de Ônibus","rio2016:paradas_onibus");
-        Layer trem = new Layer("Paradas de Trem","rio2016:paradas_trens");
+        Layer lanchesRefeicoes =  Layer.makeLayer("Lanches e Refeições","rio2016:lanches_refeicoes");
+        Layer corpoBombeiros =  Layer.makeLayer("Corpo de Bombeiros","rio2016:corpo_de_bombeiros");
+        Layer delegacias =  Layer.makeLayer("Delegacias Policiais","rio2016:delegacias_policiais");
+        Layer metro =  Layer.makeLayer("Paradas de Metro","rio2016:paradas_metro");
+        Layer onibus =  Layer.makeLayer("Paradas de Ônibus","rio2016:paradas_onibus");
+        Layer trem =  Layer.makeLayer("Paradas de Trem","rio2016:paradas_trens");
         
         //Tatico
         tatico.addLayer(bairros);

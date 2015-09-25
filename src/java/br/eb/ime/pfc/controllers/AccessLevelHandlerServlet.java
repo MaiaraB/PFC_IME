@@ -203,7 +203,7 @@ public class AccessLevelHandlerServlet extends HttpServlet {
         if(name == null || name.equals("")){
             throw new RuntimeException("No name attribute specified");
         }
-        final AccessLevel accessLevel = new AccessLevel(name);
+        final AccessLevel accessLevel = AccessLevel.makeAccessLevel(name);
         String layerWmsId;
         int layerIndex = 0;
         final LayerManager layerManager = new LayerManager(HibernateUtil.getCurrentSession());
@@ -213,7 +213,7 @@ public class AccessLevelHandlerServlet extends HttpServlet {
             }
             try{
                 final Layer layer = layerManager.getById(layerWmsId);
-                accessLevel.addLayer(new Layer(layerWmsId,layerWmsId));
+                accessLevel.addLayer(Layer.makeLayer(layerWmsId,layerWmsId));
             }
             catch(HibernateException e){
                 throw new RuntimeException("No layer with the specified id");
