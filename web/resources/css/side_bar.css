@@ -110,3 +110,13 @@ and open the template in the editor.
     left: -webkit-calc(100% - 35px);
     left: calc(100% - 35px);
 }
+
+.marker-tooltip + .tooltip > .tooltip-inner{
+    color: #808080;
+    background-color: white;
+    min-width: 150px;
+}
+
+.marker-tooltip + .tooltip > .tooltip-arrow { 
+    border-top-color: white;
+}
