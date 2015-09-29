@@ -27,11 +27,8 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * If the user has access denied, a Http 401 code is sent.
  */
-@WebServlet(name = "WMSProxyServlet", urlPatterns = {"/wms","/wms/*"})
+@WebServlet(name = "WMSProxyServlet", urlPatterns = {"/geoserver/wms/*","/geoserver/wms"})
 public class WMSProxyServlet extends HttpServlet {
-    private static final String GEOSERVER_URL = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/wms?";
-    private static final int REDIRECT_BUFFER_SIZE = 1024;
-    //private static final String GEOSERVER_URL = "http://localhost/geoserver/rio2016/wms?";
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -52,7 +49,7 @@ public class WMSProxyServlet extends HttpServlet {
             if(authenticateLayers(request,response,layersIds)){
                 try{
                     request.getServletContext().log("Redirected");
-                    GeoServerCommunication.redirectWMSStreamFromRequest(request,response);
+                    GeoServerCommunication.redirectStreamFromRequest(request,response);
                 }
                 catch(RuntimeException e){
                     response.sendError(500);
@@ -127,7 +124,6 @@ public class WMSProxyServlet extends HttpServlet {
         }        
         return layerIds;
     }
-    
     
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

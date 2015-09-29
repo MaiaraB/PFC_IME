@@ -25,6 +25,9 @@ package br.eb.ime.pfc.domain;
 
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
+import it.geosolutions.geoserver.rest.decoder.RESTFeatureType;
+import it.geosolutions.geoserver.rest.decoder.RESTFeatureType.Attribute;
+import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
 import it.geosolutions.geoserver.rest.decoder.RESTStyleList;
 import it.geosolutions.geoserver.rest.decoder.utils.NameLinkElem;
@@ -36,6 +39,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -57,6 +61,7 @@ public class GeoServerCommunication {
     public static GeoServerCommunication makeGeoserverCommunication() throws GeoserverCommunicationException{
         GeoServerRESTReader reader = null;
         GeoServerRESTPublisher publisher = null;
+        
         try{
             reader = new GeoServerRESTReader(GEOSERVER_URL, GEOSERVER_RESTUSER, GEOSERVER_RESTPW);
             publisher = new GeoServerRESTPublisher(GEOSERVER_URL, GEOSERVER_RESTUSER, GEOSERVER_RESTPW);
@@ -80,18 +85,22 @@ public class GeoServerCommunication {
         }
     }
     
-    public static void redirectWMSStreamFromRequest(HttpServletRequest request,HttpServletResponse response){
-        final String urlName = GEOSERVER_URL + "/wms?" + request.getRequestURI() + request.getQueryString();
-        redirectWMSStream(urlName,request,response);
+    public static void redirectStreamFromRequest(HttpServletRequest request,HttpServletResponse response){
+        
+        final String urlName = GEOSERVER_URL + request.getRequestURI().replace(request.getContextPath()+"/geoserver","")+ "?" +request.getQueryString();
+        request.getServletContext().log("URL"+urlName);
+        request.getServletContext().log("CONTEXT"+request.getContextPath());
+        request.getServletContext().log("URL"+request.getRequestURI());
+        redirectStream(urlName,request,response);
     }
     
     public static void getLegendGraphic(String layerId,int width,int height,HttpServletRequest request,HttpServletResponse response){
         final String urlName = GEOSERVER_URL + "/wms?" + "REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH="
                 + width+"&HEIGHT="+height+"&LAYER="+layerId + "&EXCEPTIONS=application/vnd.ogc.se_blank";
-        redirectWMSStream(urlName,request,response);
+        redirectStream(urlName,request,response);
     }
     
-    private static void redirectWMSStream(String urlName,HttpServletRequest request, HttpServletResponse response){
+    private static void redirectStream(String urlName,HttpServletRequest request, HttpServletResponse response){
         URL url = null;
         try{
             url = new URL(urlName);
@@ -169,6 +178,10 @@ public class GeoServerCommunication {
         }
     }
     
+    public boolean setDefaultStyleToLayer(){
+        return false;
+    }
+    
     public boolean existsStyle(String styleName){
         return reader.existsStyle(styleName);
     }
@@ -237,18 +250,36 @@ public class GeoServerCommunication {
     }
     
     public static void main(String args[]) throws MalformedURLException{
-        String RESTURL  = "http://localhost:8080/geoserver";
-        //private static final String GEOSERVER_URL = "http://localhost/geoserver/rio2016/wms?";
+        
+        final String RESTURL = GEOSERVER_URL;
         String RESTUSER = "admin";
         String RESTPW   = "geoserver";
         
         GeoServerRESTReader reader = new GeoServerRESTReader(RESTURL, RESTUSER, RESTPW);
         GeoServerRESTPublisher publisher = new GeoServerRESTPublisher(RESTURL, RESTUSER, RESTPW);
         
+        RESTLayer layer = reader.getLayer("rio2016", "hoteis");
+        RESTFeatureType feature = reader.getFeatureType(layer);
+        Iterator<Attribute> featIterator = feature.attributesIterator();
+        while(featIterator.hasNext()){
+            System.out.println(featIterator.next());
+        }
+        
+        /*
         GeoServerCommunication com = GeoServerCommunication.makeGeoserverCommunication();
-        System.out.println(com.removeStyle("novo_estilo"));
-        System.out.println(com.addStyle("novo_estilo","http://com.cartodb.users-assets.production.s3.amazonaws.com/simpleicon/map43.svg" , "image/svg", 32));
-        System.out.println(com.updateStyle("novo_estilo","http://com.cartodb.users-assets.production.s3.amazonaws.com/simpleicon/map43.svg" , "image/svg", 32));
+        List<String> names = com.getLayerNames();
+        
+        for(String name : names){
+            System.out.println(name);
+        }
+        
+        for(String work : reader.getWorkspaceNames()){
+            System.out.println(work);
+        }
+        //System.out.println(com.removeStyle("novo_estilo"));
+        //System.out.println(com.addStyle("novo_estilo","http://com.cartodb.users-assets.production.s3.amazonaws.com/simpleicon/map43.svg" , "image/svg", 32));
+        //System.out.println(com.updateStyle("novo_estilo","http://com.cartodb.users-assets.production.s3.amazonaws.com/simpleicon/map43.svg" , "image/svg", 32));
+        
         /*
         
         RESTLayerList list = reader.getLayers();
