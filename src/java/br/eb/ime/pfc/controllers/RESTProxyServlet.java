@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author arthurfernandes
  */
-@WebServlet(name = "RESTProxyServlet", urlPatterns = {"/geoserver/rest","/geoserver/rest*"})
+@WebServlet(name = "RESTProxyServlet", urlPatterns = {"/geoserver/rest","/geoserver/rest/*"})
 public class RESTProxyServlet extends HttpServlet {
 
     /**

@@ -25,9 +25,6 @@ package br.eb.ime.pfc.domain;
 
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
-import it.geosolutions.geoserver.rest.decoder.RESTFeatureType;
-import it.geosolutions.geoserver.rest.decoder.RESTFeatureType.Attribute;
-import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
 import it.geosolutions.geoserver.rest.decoder.RESTStyleList;
 import it.geosolutions.geoserver.rest.decoder.utils.NameLinkElem;
@@ -39,10 +36,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -54,6 +51,7 @@ public class GeoServerCommunication {
     //private final static String GEOSERVER_URL = "http://localhost:8080/geoserver";
     private final static String GEOSERVER_RESTUSER = "admin";
     private final static String GEOSERVER_RESTPW = "geoserver";
+    private final static String BASE64_AUTHORIZATION = new String(Base64.encodeBase64((GEOSERVER_RESTUSER + ":" + GEOSERVER_RESTPW).getBytes()));
     
     private final GeoServerRESTReader reader;
     private final GeoServerRESTPublisher publisher;
@@ -101,6 +99,7 @@ public class GeoServerCommunication {
     }
     
     private static void redirectStream(String urlName,HttpServletRequest request, HttpServletResponse response){
+        urlName = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/rest/workspaces/rio2016/datastores/RIO2016/featuretypes/hoteis.xml";
         URL url = null;
         try{
             url = new URL(urlName);
@@ -113,9 +112,9 @@ public class GeoServerCommunication {
         HttpURLConnection conn = null;
         try{
             conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setDoOutput(true);
-            response.setContentType(request.getContentType());
+            conn.addRequestProperty("Authorization", "Basic "+BASE64_AUTHORIZATION);
+            //conn.setRequestMethod("GET");
+            //conn.setDoOutput(true);
             conn.connect();
         }
         catch(IOException e){
@@ -124,9 +123,11 @@ public class GeoServerCommunication {
         }
         
         try(InputStream is = conn.getInputStream();OutputStream os = response.getOutputStream()){
+            response.setContentType(conn.getContentType());
             IOUtils.copy(is, os);
         }
         catch(IOException e){
+            request.getServletContext().log("IO");
             sendError(HTTP_STATUS.INTERNAL_ERROR,response);
             return;
         }
@@ -249,7 +250,7 @@ public class GeoServerCommunication {
         }
     }
     
-    public static void main(String args[]) throws MalformedURLException{
+    public static void main(String args[]) throws MalformedURLException, IOException{
         
         final String RESTURL = GEOSERVER_URL;
         String RESTUSER = "admin";
@@ -258,9 +259,18 @@ public class GeoServerCommunication {
         GeoServerRESTReader reader = new GeoServerRESTReader(RESTURL, RESTUSER, RESTPW);
         GeoServerRESTPublisher publisher = new GeoServerRESTPublisher(RESTURL, RESTUSER, RESTPW);
         
-        RESTLayer layer = reader.getLayer("rio2016", "hoteis");
-        RESTFeatureType feature = reader.getFeatureType(layer);
-        Iterator<Attribute> featIterator = feature.attributesIterator();
+        //RESTLayer layer = reader.getLayer("rio2016", "hoteis");
+        //RESTFeatureType feature = reader.getFeatureType(layer);
+        
+        URL url = new URL(GEOSERVER_URL + "/rest/namespaces/rio2016.xml");
+        
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.addRequestProperty("Authorization", "Basic YWRtaW46Z2Vvc2VydmVy");
+        System.out.println(BASE64_AUTHORIZATION);
+        
+        InputStream is = conn.getInputStream();
+        is.read();
+        /*Iterator<Attribute> featIterator = feature.attributesIterator();
         while(featIterator.hasNext()){
             System.out.println(featIterator.next());
         }
