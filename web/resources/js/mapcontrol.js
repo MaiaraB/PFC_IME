@@ -472,8 +472,8 @@ mapControl.addTrackLocationControl = function() {
             var c = positions.getCoordinateAtM(m, true);
             var view = frameState.viewState;
             if (c) {
-              view.center = getCenterWithHeading(c, -c[2], view.resolution);
-              view.rotation = -c[2];
+              //view.center = getCenterWithHeading(c, -c[2], view.resolution);
+              //view.rotation = -c[2];
               marker.setPosition(c);
             }
           }
