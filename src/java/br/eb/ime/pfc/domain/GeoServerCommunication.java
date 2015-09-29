@@ -25,9 +25,11 @@ package br.eb.ime.pfc.domain;
 
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
+import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
 import it.geosolutions.geoserver.rest.decoder.RESTStyleList;
 import it.geosolutions.geoserver.rest.decoder.utils.NameLinkElem;
+import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -148,6 +150,7 @@ public class GeoServerCommunication {
         if(this.reader.existGeoserver()){
             final List<String> layerNames = new ArrayList<>();
             final RESTLayerList restLayerList = this.reader.getLayers();
+
             if(restLayerList == null){
                 throw new GeoserverCommunicationException("Communication issue with Geoserver REST API at:"+GEOSERVER_URL);
             }
@@ -178,8 +181,17 @@ public class GeoServerCommunication {
         }
     }
     
-    public boolean setDefaultStyleToLayer(){
-        return false;
+    public boolean setDefaultStyleToLayer(String workspace,String layer,String style){
+        RESTLayer restLayer = reader.getLayer(workspace,layer);
+        if(restLayer == null){
+            return false;
+        }
+        else{
+            final GSLayerEncoder layerEnc = new GSLayerEncoder();
+            layerEnc.addStyle(style);
+            layerEnc.setDefaultStyle(style);
+            return publisher.configureLayer(workspace, layer, layerEnc);
+        }
     }
     
     public boolean existsStyle(String styleName){
@@ -261,21 +273,16 @@ public class GeoServerCommunication {
         //RESTLayer layer = reader.getLayer("rio2016", "hoteis");
         //RESTFeatureType feature = reader.getFeatureType(layer);
         
-        URL url = new URL(GEOSERVER_URL + "/rest/namespaces/rio2016.xml");
         
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.addRequestProperty("Authorization", "Basic YWRtaW46Z2Vvc2VydmVy");
-        System.out.println(BASE64_AUTHORIZATION);
-        
-        InputStream is = conn.getInputStream();
-        is.read();
         /*Iterator<Attribute> featIterator = feature.attributesIterator();
         while(featIterator.hasNext()){
             System.out.println(featIterator.next());
-        }
+        }*/
         
-        /*
+        
         GeoServerCommunication com = GeoServerCommunication.makeGeoserverCommunication();
+        com.setDefaultStyleToLayer("rio2016", "atracoes", "pinpoint");
+        
         List<String> names = com.getLayerNames();
         
         for(String name : names){

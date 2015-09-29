@@ -18,7 +18,7 @@ public class Feature implements Serializable{
     
     private static final long serialVersionUID = 1L;
     
-    @Column(name="NAME") private final String name;
+    @Column(name="FEATURE_NAME") private final String name;
     @Column(name="FEATURE_ID") private final String wmsId;
     
     //@Id

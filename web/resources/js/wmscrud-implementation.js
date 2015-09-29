@@ -49,7 +49,7 @@ else{
         if(typeof matchObject === 'undefined'){
             return false;
         }
-        if((matchObject['wmsId'] === "") || (matchObject['wmsId'].trim().indexOf(" ") > -1)){
+        if(matchObject['wmsId'] === ""){
             this.objectDiv.find(".handler-object-wmsId").addClass("handler-error-highlight");
             return false;
         }
