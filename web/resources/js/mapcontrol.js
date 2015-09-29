@@ -209,7 +209,12 @@ mapControl.getFeatureInfo = function(evt,obj){
                     success: function(data){
                         var jsonData;
                         try{
-                            jsonData = $.parseJSON(data);
+                            if(typeof data === 'object'){
+                                jsonData = data;
+                            }
+                            else{
+                                jsonData = $.parseJSON(data);
+                            }
                         }
                         catch(err){
                             return;
