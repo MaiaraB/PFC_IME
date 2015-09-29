@@ -26,19 +26,22 @@ mapControl.loadWMSService = function (layers){
     this.addLayers(this.layers);
     this.configureLayerBar();
     this.configurePopup();
+    this.addFullScreen();
+    this.addTrackLocationControl();
 };
 
 mapControl.createMap = function(){
+    this.view = new ol.View({
+          center: [-4838783.385621721, -2622880.3527477663],
+          zoom: 11
+        });
     return new ol.Map({
         layers: [],
         /* Improve user experience by loading tiles while dragging/zooming. Will make
          zooming choppy on mobile or slow devices.*/
         loadTilesWhileInteracting: true,
         target: this.targetMapDivId,
-        view: new ol.View({
-          center: [-4838783.385621721, -2622880.3527477663],
-          zoom: 11
-        })
+        view: this.view
     });
 };
 
@@ -81,7 +84,7 @@ mapControl.addLayers = function(layers){
         var source = new ol.source.TileWMS(({
             url: this.layerWMSURL,
             params: { 
-                STYLES : layer.style,
+                STYLES : layer.style.name,
                 LAYERS: layer.wmsId
             }
         }));
@@ -298,7 +301,6 @@ mapControl.renderProgressBar = function() {
     Progress.prototype.update = function() {
         var width = (this.loaded / this.loading * 100).toFixed(1) + '%';
         this.el.style.width = width;
-        console.log(width);
         if (this.loading === this.loaded) {
             this.loading = 0;
             this.loaded = 0;
@@ -311,7 +313,6 @@ mapControl.renderProgressBar = function() {
      */
     Progress.prototype.show = function() {
         this.el.style.visibility = 'visible';
-        console.log("mostrar");
     };
 
     /**
@@ -321,11 +322,206 @@ mapControl.renderProgressBar = function() {
         if (this.loading === this.loaded) {
             this.el.style.visibility = 'hidden';
             this.el.style.width = 0;
-            console.log("esconder");
         }
     };
 
     this.progress = new Progress(document.getElementById('progress'));
 };
 
+mapControl.addFullScreen = function() {
+    this.map.addControl(new ol.control.FullScreen());
+    this.map.addInteraction(new ol.interaction.DragRotateAndZoom());
+    
+    var mapdiv = $("#map");
+    $(".ol-full-screen").on("click", ".ol-full-screen-false", function() {
+        mapdiv.attr("style","top:0px;");
+    });
+    $(".ol-full-screen").on("click", ".ol-full-screen-true", function() {
+        mapdiv.attr("style","top:50px;");
+    });
+};
+
+mapControl.addTrackLocationControl = function() {
+    /**
+    * Define a namespace for the application.
+    */
+    window.app = {};
+    var app = window.app;  
+    var self = this;
+    /**
+    * @constructor
+    * @extends {ol.control.Control}
+    * @param {Object=} opt_options Control options.
+    */
+   app.TrackLocationControl = function(opt_options) {
+
+        var options = opt_options || {};
+
+        var geolocateBtn = document.createElement('button');
+        geolocateBtn.innerHTML = 'N';
+        
+        // Geolocation marker
+        var markerEl = document.getElementById('geolocation_marker');
+        var marker = new ol.Overlay({
+          positioning: 'center-center',
+          element: markerEl,
+          stopEvent: false
+        });
+        self.map.addOverlay(marker);
+
+        // LineString to store the different geolocation positions. This LineString
+        // is time aware.
+        // The Z dimension is actually used to store the rotation (heading).
+        var positions = new ol.geom.LineString([],
+            /** @type {ol.geom.GeometryLayout} */ ('XYZM'));
+
+        // Geolocation Control
+        var geolocation = new ol.Geolocation(/** @type {olx.GeolocationOptions} */ ({
+          projection: self.view.getProjection(),
+          trackingOptions: {
+            maximumAge: 10000,
+            enableHighAccuracy: true,
+            timeout: 600000
+          }
+        }));
+
+        var deltaMean = 500; // the geolocation sampling period mean in ms
+
+        // Listen to position changes
+        geolocation.on('change', function(evt) {
+          var position = geolocation.getPosition();
+          var accuracy = geolocation.getAccuracy();
+          var heading = geolocation.getHeading() || 0;
+          var speed = geolocation.getSpeed() || 0;
+          var m = Date.now();
+
+          addPosition(position, heading, m, speed);
+
+          var coords = positions.getCoordinates();
+          var len = coords.length;
+          if (len >= 2) {
+            deltaMean = (coords[len - 1][3] - coords[0][3]) / (len - 1);
+          }
+
+          var html = [
+            'Position: ' + position[0].toFixed(2) + ', ' + position[1].toFixed(2),
+            'Accuracy: ' + accuracy,
+            'Heading: ' + Math.round(radToDeg(heading)) + '&deg;',
+            'Speed: ' + (speed * 3.6).toFixed(1) + ' km/h',
+            'Delta: ' + Math.round(deltaMean) + 'ms'
+          ].join('<br />');
+          //document.getElementById('info').innerHTML = html;
+        });
+
+        geolocation.on('error', function() {
+          alert('geolocation error');
+          // FIXME we should remove the coordinates in positions
+        });
+
+        // convert radians to degrees
+        function radToDeg(rad) {
+          return rad * 360 / (Math.PI * 2);
+        }
+        // convert degrees to radians
+        function degToRad(deg) {
+          return deg * Math.PI * 2 / 360;
+        }
+        // modulo for negative values
+        function mod(n) {
+          return ((n % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
+        }
+
+        function addPosition(position, heading, m, speed) {
+          var x = position[0];
+          var y = position[1];
+          var fCoords = positions.getCoordinates();
+          var previous = fCoords[fCoords.length - 1];
+          var prevHeading = previous && previous[2];
+          if (prevHeading) {
+            var headingDiff = heading - mod(prevHeading);
+
+            // force the rotation change to be less than 180°
+            if (Math.abs(headingDiff) > Math.PI) {
+              var sign = (headingDiff >= 0) ? 1 : -1;
+              headingDiff = - sign * (2 * Math.PI - Math.abs(headingDiff));
+            }
+            heading = prevHeading + headingDiff;
+          }
+          positions.appendCoordinate([x, y, heading, m]);
+
+          // only keep the 20 last coordinates
+          positions.setCoordinates(positions.getCoordinates().slice(-20));
+
+          // FIXME use speed instead
+          if (heading && speed) {
+            markerEl.src = './resources/img/geolocation_marker_heading.png';
+          } else {
+            markerEl.src = './resources/img/geolocation_marker.png';
+          }
+        }
+
+        var previousM = 0;
+        // change center and rotation before render
+        self.map.beforeRender(function(map, frameState) {
+          if (frameState !== null) {
+            // use sampling period to get a smooth transition
+            var m = frameState.time - deltaMean * 1.5;
+            m = Math.max(m, previousM);
+            previousM = m;
+            // interpolate position along positions LineString
+            var c = positions.getCoordinateAtM(m, true);
+            var view = frameState.viewState;
+            if (c) {
+              view.center = getCenterWithHeading(c, -c[2], view.resolution);
+              view.rotation = -c[2];
+              marker.setPosition(c);
+            }
+          }
+          return true; // Force animation to continue
+        });
+
+        // recenters the view by putting the given coordinates at 3/4 from the top or
+        // the screen
+        function getCenterWithHeading(position, rotation, resolution) {
+          var size = self.map.getSize();
+          var height = size[1];
+
+          return [
+            position[0] - Math.sin(rotation) * height * resolution * 1 / 4,
+            position[1] + Math.cos(rotation) * height * resolution * 1 / 4
+          ];
+        }
+
+        // postcompose callback
+        function render() {
+          self.map.render();
+        }
+
+        // geolocate device
+        geolocateBtn.addEventListener('click', function() {
+          geolocation.setTracking(true); // Start position tracking
+
+          self.map.on('postcompose', render);
+          self.map.render();
+
+          //disableButtons();
+        }, false);
+
+        //button.addEventListener('click', trackLocation, false);
+        //button.addEventListener('touchstart', trackLocation, false);
+
+        var element = document.createElement('div');
+        element.className = 'track-location ol-unselectable ol-control';
+        element.appendChild(geolocateBtn);
+        
+        ol.control.Control.call(this, {
+            element: element,
+            target: options.target
+         });
+        
+   };
+   ol.inherits(app.TrackLocationControl, ol.control.Control);
+   
+   this.map.addControl(new app.TrackLocationControl());
+};
 
