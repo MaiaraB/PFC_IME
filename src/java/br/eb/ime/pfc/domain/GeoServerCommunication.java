@@ -99,7 +99,6 @@ public class GeoServerCommunication {
     }
     
     private static void redirectStream(String urlName,HttpServletRequest request, HttpServletResponse response){
-        urlName = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/rest/workspaces/rio2016/datastores/RIO2016/featuretypes/hoteis.xml";
         URL url = null;
         try{
             url = new URL(urlName);
