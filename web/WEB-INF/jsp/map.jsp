@@ -44,63 +44,68 @@
             </nav>
         </div>
         <div class="navbar-offset"></div>
-        <div id="map">
-        </div>
-        <div id="progress" class="progress-bar"></div>
-        <div id="popup" class="ol-popup" style="display:none">
-            <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-            <div id="popup-content" class="table-responsive ol-popup-content"></div>
-        </div>
-        <div class="row main-row ">
-            <div class="col-sm-4 col-md-3 sidebar sidebar-left pull-left">
-                <div class="panel-group sidebar-body" id="accordion-left">
-                    <div class="panel panel-default scrollable_list">
-                        <div class="panel-heading">
-                            <h4 class="panel-title">
-                                <a data-toggle="collapse" href="#layers">
-                                    <i class="fa fa-list-alt"></i>
-                                    Camadas
-                                </a>
-                                <span class="pull-right slide-submenu">
-                                    <i class="fa fa-chevron-left"></i>
-                                </span>
-                            </h4>
-                        </div>
-                        <div id="layers" class="panel-collapse collapse in">
-                            <div class="panel-body list-group">
-                                <a href="#" class="list-group-item" data-toggle="collapse" data-target="#bl" data-parent="#menu">
-                                    <i class="fa fa-list-alt"> Camadas Base</i>
-                                </a>
-                                <div id="bl" class="sublinks collapse">
-                                    <a onclick="mapControl.showBaseLayer('Aerial')" class="list-group-item small clickable">
-                                        <i class="fa fa-globe" ></i> <span>Satélite</span>
+        <div id="map"> 
+            <div id="sidebar" class="row main-row ">
+                <div class="col-sm-4 col-md-3 sidebar sidebar-left pull-left">
+                    <div class="panel-group sidebar-body" id="accordion-left">
+                        <div class="panel panel-default scrollable_list">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" href="#layers">
+                                        <i class="fa fa-list-alt"></i>
+                                        Camadas
                                     </a>
-                                    <a onclick="mapControl.showBaseLayer('Road')" class="list-group-item small clickable">
-                                        <i class="fa fa-globe"></i> <span>Ruas</span>
+                                    <span class="pull-right slide-submenu">
+                                        <i class="fa fa-chevron-left"></i>
+                                    </span>
+                                </h4>
+                            </div>
+                            <div id="layers" class="panel-collapse collapse in">
+                                <div class="panel-body list-group">
+                                    <a href="#" class="list-group-item" data-toggle="collapse" data-target="#bl" data-parent="#menu">
+                                        <i class="fa fa-list-alt"> Camadas Base</i>
                                     </a>
-                                    <a onclick="mapControl.showBaseLayer('AerialWithLabels')" class="list-group-item small clickable">
-                                        <i class="fa fa-globe"></i> <span>Satélite + Ruas</span>
+                                    <div id="bl" class="sublinks collapse">
+                                        <a onclick="mapControl.showBaseLayer('Aerial')" class="list-group-item small clickable">
+                                            <i class="fa fa-globe" ></i> <span>Satélite</span>
+                                        </a>
+                                        <a onclick="mapControl.showBaseLayer('Road')" class="list-group-item small clickable">
+                                            <i class="fa fa-globe"></i> <span>Ruas</span>
+                                        </a>
+                                        <a onclick="mapControl.showBaseLayer('AerialWithLabels')" class="list-group-item small clickable">
+                                            <i class="fa fa-globe"></i> <span>Satélite + Ruas</span>
+                                        </a>
+                                    </div>
+                                    <a href="#" class="list-group-item" data-toggle="collapse" data-target="#ol" data-parent="#menu">
+                                        <i class="fa fa-list-alt"> Outras Camadas</i>
                                     </a>
-                                </div>
-                                <a href="#" class="list-group-item" data-toggle="collapse" data-target="#ol" data-parent="#menu">
-                                    <i class="fa fa-list-alt"> Outras Camadas</i>
-                                </a>
-                                <div id="ol" class="sublinks collapse map-control-layers">
-                                <!--c:forEach var="layer" items="{layers}" varStatus="status">
-                                    <a onclick="mapControl.showLayer(this,{status.index})" class="list-group-item small clickable">
-                                        <i class="glyphicon-plus"></i> <span class="text-danger">{layer.name}</span>
-                                    </a>
-                                <!--/c:forEach-->
+                                    <div id="ol" class="sublinks collapse map-control-layers">
+                                    <!--c:forEach var="layer" items="{layers}" varStatus="status">
+                                        <a onclick="mapControl.showLayer(this,{status.index})" class="list-group-item small clickable">
+                                            <i class="glyphicon-plus"></i> <span class="text-danger">{layer.name}</span>
+                                        </a>
+                                    <!--/c:forEach-->
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div id="mini-menu" class="mini-submenu mini-submenu-left pull-left">
+                <i class="fa fa-list-alt"></i>
+            </div>
+            <div id="progress" class="progress-bar"></div>    
         </div>
-        <div class="mini-submenu mini-submenu-left pull-left">
-            <i class="fa fa-list-alt"></i>
+       
+        <div id="popup" class="ol-popup" style="display:none">
+            <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+            <div id="popup-content" class="table-responsive ol-popup-content"></div>
         </div>
+        <div >
+            <img id="geolocation_marker" src="./resources/img/geolocation_marker.png" style="height: 15px; width:15px;">
+        </div>
+        <div id="location" class="ol-popup" style="display:none"></div>
         
         <!--%@include file="/WEB-INF/jspf/wms_openlayers.jspf" %-->
         <script src="${pageContext.request.contextPath}/resources/js/mapcontrol.js"></script>

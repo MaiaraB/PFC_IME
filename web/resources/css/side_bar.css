@@ -12,8 +12,35 @@ and open the template in the editor.
 
 .navbar-offset { margin-top: 50px; }
 #map { position: absolute; top: 50px; bottom: 0px; left: 0px; right: 0px; }
-#map .ol-zoom { font-size: 1.2em; }
+#map .ol-zoom { 
+    font-size: 1.2em;
+    top: -moz-calc(100% - 100px);
+    top: -webkit-calc(100% - 100px);
+    top: calc(100% - 100px);
+    left: -moz-calc(100% - 38px);
+    left: -webkit-calc(100% - 38px);
+    left: calc(100% - 38px);
+}
 
+.map:-moz-full-screen {
+    height: 100%;
+    top: 0px;
+}
+.map:-webkit-full-screen {
+    height: 100%;
+    top: 0px;
+}
+.map:-ms-fullscreen {
+    top: 0px;
+    height: 100%;
+}
+.map:fullscreen {
+    top: 0px;
+    height: 100%;
+}
+.ol-rotate {
+  top: 3em;
+}
 .zoom-top-opened-sidebar { margin-top: 5px; }
 .zoom-top-collapsed { margin-top: 45px; }
 
@@ -30,16 +57,16 @@ and open the template in the editor.
 
 .mini-submenu-left {
   position: absolute;
-  top: 60px;
+  top: 8px;
   left: .5em;
   z-index: 40;
 }
 
 #map { z-index: 35; }
 
-.sidebar { z-index: 45; }
+.sidebar { z-index: 45;}
 
-.main-row { position: relative; top: 0; }
+.main-row { position: absolute; top: .3em; width: 100%;}
 
 .mini-submenu:hover{
   cursor: pointer;
@@ -73,4 +100,13 @@ and open the template in the editor.
     opacity: 1;
     border: white;
     overflow: hidden;
+}
+
+.track-location {
+    top: -moz-calc(100% - 133px);
+    top: -webkit-calc(100% - 133px);
+    top: calc(100% - 133px);
+    left: -moz-calc(100% - 35px);
+    left: -webkit-calc(100% - 35px);
+    left: calc(100% - 35px);
 }
