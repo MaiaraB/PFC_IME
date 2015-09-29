@@ -5,12 +5,8 @@
  */
 package br.eb.ime.pfc.controllers;
 
+import br.eb.ime.pfc.domain.GeoServerCommunication;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -31,13 +27,8 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * If the user has access denied, a Http 401 code is sent.
  */
-@WebServlet(name = "WMSProxyServlet", urlPatterns = {"/wms","/wms/*"})
+@WebServlet(name = "WMSProxyServlet", urlPatterns = {"/geoserver/wms/*","/geoserver/wms"})
 public class WMSProxyServlet extends HttpServlet {
-    private static final String GEOSERVER_URL = "http://ec2-54-94-206-253.sa-east-1.compute.amazonaws.com/geoserver/wms?";
-    private static final int REDIRECT_BUFFER_SIZE = 1024;
-    //private static final String GEOSERVER_URL = "http://localhost/geoserver/rio2016/wms?";
-    
-    
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -58,7 +49,7 @@ public class WMSProxyServlet extends HttpServlet {
             if(authenticateLayers(request,response,layersIds)){
                 try{
                     request.getServletContext().log("Redirected");
-                    redirectStream(request,response);
+                    GeoServerCommunication.redirectStreamFromRequest(request,response);
                 }
                 catch(RuntimeException e){
                     response.sendError(500);
@@ -133,52 +124,6 @@ public class WMSProxyServlet extends HttpServlet {
         }        
         return layerIds;
     }
-    
-    /**
-     * This method is responsible for redirecting the request to the WMS Server 
-     * and returning the result to the user.
-     * @param request servlet request
-     * @param response servlet response
-     */
-    protected void redirectStream(HttpServletRequest request, HttpServletResponse response) throws IOException{
-        final String urlName = GEOSERVER_URL + request.getRequestURI() + request.getQueryString();
-        request.getServletContext().log("REDIRECT:"+urlName);
-        URL url = null;
-        try{
-            url = new URL(urlName);
-        }
-        catch(MalformedURLException e){
-            //Internal error, the user will receive no data.
-            return;
-        }
-        HttpURLConnection conn = null;
-        try{
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setDoOutput(true);
-            response.setContentType(request.getContentType());
-            conn.connect();
-        }
-        catch(IOException e){
-            return;
-        }
-        
-        try(InputStream is = conn.getInputStream();OutputStream os = response.getOutputStream()){
-            byte[] buffer = new byte[REDIRECT_BUFFER_SIZE];
-            int len;
-            while ((len = is.read(buffer)) != -1) {
-                os.write(buffer, 0, len);
-            }
-            os.flush();
-        }
-        catch(IOException e){
-            return;
-        }
-        finally{ //Close connection to save resources
-            conn.disconnect();
-        }
-    }
-    
     
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
