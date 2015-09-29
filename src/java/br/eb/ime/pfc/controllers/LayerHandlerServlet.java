@@ -29,6 +29,7 @@ import br.eb.ime.pfc.domain.Layer;
 import br.eb.ime.pfc.domain.LayerManager;
 import br.eb.ime.pfc.domain.ObjectDuplicateException;
 import br.eb.ime.pfc.domain.ObjectNotFoundException;
+import br.eb.ime.pfc.domain.Style;
 import br.eb.ime.pfc.hibernate.HibernateUtil;
 import flexjson.JSONSerializer;
 import java.io.IOException;
@@ -218,7 +219,7 @@ public class LayerHandlerServlet extends HttpServlet {
         
         String style = request.getParameter("style");
         if(style != null){
-            layer.setStyle(style);
+            layer.setStyle(new Style(style));
         }
         String opacityString = request.getParameter("opacity");
         if(opacityString != null)

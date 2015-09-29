@@ -26,6 +26,7 @@ package br.eb.ime.pfc.hibernate;
 import br.eb.ime.pfc.domain.AccessLevel;
 import br.eb.ime.pfc.domain.Feature;
 import br.eb.ime.pfc.domain.Layer;
+import br.eb.ime.pfc.domain.Style;
 import br.eb.ime.pfc.domain.User;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -96,7 +97,7 @@ public class HibernateUtil {
         Layer atracoesComite =  Layer.makeLayer("Atrações do Comitê","rio2016:atracoes_comite");
         Layer competicoes =  Layer.makeLayer("Competições","rio2016:competicoes");
         Layer hoteis =  Layer.makeLayer("Hotéis","rio2016:hoteis");
-        hoteis.setStyle("pinpoint");
+        hoteis.setStyle(new Style("pinpoint"));
         Layer lanchesRefeicoes =  Layer.makeLayer("Lanches e Refeições","rio2016:lanches_refeicoes");
         Layer corpoBombeiros =  Layer.makeLayer("Corpo de Bombeiros","rio2016:corpo_de_bombeiros");
         Layer delegacias =  Layer.makeLayer("Delegacias Policiais","rio2016:delegacias_policiais");

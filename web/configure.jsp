@@ -58,6 +58,15 @@
                         });
                     });
                     
+                    $(".select-all-checkbox").each(function(){
+                        $(this).click(function(){
+                            var self = this;
+                            $(this).parents(".panel").first().find(".handler-checkbox").each(function(){
+                                this.checked = self.checked;
+                            });
+                        });
+                    });
+                    
                     var objectFeatures = $("#layers-panel .handler-object-features");
                     objectFeatures.sortable({
                         handler : ".panel-heading",
@@ -98,7 +107,7 @@
             
             .panel .glyphicon,.list-group-item .glyphicon { margin-right:5px; }
             .panel-body .radio, .handler-checkbox { display:inline-block;margin:0px; }
-            .panel-body input[type=checkbox]:checked + label { text-decoration: line-through;color: rgb(128, 144, 160); }
+            .object-list-div input[type=checkbox]:checked + label { text-decoration: line-through;color: rgb(128, 144, 160); }
             .list-group-item:hover, a.list-group-item:focus {text-decoration: none;background-color: rgb(245, 245, 245);}
             
             .list-group { margin-bottom:0px; }
@@ -140,6 +149,10 @@
                 margin-bottom:7px;
             }
             
+            .select-all-checkbox{
+                margin-bottom: 0px;
+                margin-top:0px;
+            }
         </style>
     </head>
     <body>
@@ -169,9 +182,8 @@
                                 </div>
                             </div>
                             <div class="panel-body">
-                                
-                                <div class="list-group object-list-div">
-                                </div>
+                                <div class="checkbox"><label><input type="checkbox" class="select-all-checkbox">Selecionar Tudo</label></div>
+                                <div class="list-group object-list-div"></div>
                                 <div class="text-center handler-add-select clickable"><span class="glyphicon glyphicon-plus-sign add-glyph"></span></div>
                                 <div class="handler-template-obj list-group-item" style="display:none">
                                         
@@ -276,9 +288,8 @@
                                 </div>
                             </div>
                             <div class="panel-body">
-                                <div class="list-group object-list-div">
-                                    
-                                </div>
+                                <div class="checkbox"><label><input type="checkbox" class="select-all-checkbox">Selecionar Tudo</label></div>
+                                <div class="list-group object-list-div"></div>
                                 <div class="text-center handler-add-select clickable"><span class="glyphicon glyphicon-plus-sign add-glyph"></span></div>
                                 <div class="handler-template-obj list-group-item" style="display:none">
                                         
@@ -347,9 +358,8 @@
                                 </div>
                             </div>
                             <div class="panel-body">
-                                <div class="list-group object-list-div">
-                                    
-                                </div>
+                                <div class="checkbox"><label><input type="checkbox" class="select-all-checkbox">Selecionar Tudo</label></div>
+                                <div class="list-group object-list-div"></div>
                                 <div class="text-center handler-add-select clickable"><span class="glyphicon glyphicon-plus-sign add-glyph"></span></div>
                                 <div class="handler-template-obj list-group-item" style="display:none">
                                         
