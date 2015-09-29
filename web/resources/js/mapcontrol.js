@@ -4,7 +4,7 @@ var mapControl = {
     targetMapDivId : 'map',
     baseLayerStyles : ['Road','Aerial','AerialWithLabels'],
     layerJSONURL : 'layers',
-    layerWMSURL : 'wms',
+    layerWMSURL : 'geoserver/wms',
     layers : [],
     baseLayers : [],
     olLayers : []
@@ -358,7 +358,8 @@ mapControl.addTrackLocationControl = function() {
         var options = opt_options || {};
 
         var geolocateBtn = document.createElement('button');
-        geolocateBtn.innerHTML = 'N';
+        geolocateBtn.innerHTML = 'L';
+        //geolocateBtn.appendChild(document.createElement("INPUT").setAttribute("type","image").setAttribute("src","./resources/img/location_icon.png"));
         
         // Geolocation marker
         var markerEl = document.getElementById('geolocation_marker');
@@ -404,13 +405,13 @@ mapControl.addTrackLocationControl = function() {
           }
 
           var html = [
-            'Position: ' + position[0].toFixed(2) + ', ' + position[1].toFixed(2),
-            'Accuracy: ' + accuracy,
-            'Heading: ' + Math.round(radToDeg(heading)) + '&deg;',
-            'Speed: ' + (speed * 3.6).toFixed(1) + ' km/h',
+            'Posição: ' + position[0].toFixed(2) + ', ' + position[1].toFixed(2),
+            'Precisão: ' + accuracy,
+            'Direção: ' + Math.round(radToDeg(heading)) + '&deg;',
+            'Velocidade: ' + (speed * 3.6).toFixed(1) + ' km/h',
             'Delta: ' + Math.round(deltaMean) + 'ms'
           ].join('<br />');
-          //document.getElementById('info').innerHTML = html;
+          $("[data-toggle='tooltip']").tooltip({title: html, html: true, trigger: "hover"}); 
         });
 
         geolocation.on('error', function() {

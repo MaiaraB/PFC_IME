@@ -102,10 +102,9 @@
             <a href="#" id="popup-closer" class="ol-popup-closer"></a>
             <div id="popup-content" class="table-responsive ol-popup-content"></div>
         </div>
-        <div >
-            <img id="geolocation_marker" src="./resources/img/geolocation_marker.png" style="height: 15px; width:15px;">
+        <div class="marker-container">
+            <img id="geolocation_marker" src="./resources/img/geolocation_marker.png" data-toggle='tooltip' class='marker-tooltip' style="height: 15px; width:15px;">
         </div>
-        <div id="location" class="ol-popup" style="display:none"></div>
         
         <!--%@include file="/WEB-INF/jspf/wms_openlayers.jspf" %-->
         <script src="${pageContext.request.contextPath}/resources/js/mapcontrol.js"></script>
