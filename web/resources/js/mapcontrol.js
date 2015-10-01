@@ -7,7 +7,8 @@ var mapControl = {
     layerWMSURL : 'geoserver/wms',
     layers : [],
     baseLayers : [],
-    olLayers : []
+    olLayers : [], 
+    trackingState: false
 };
 
 /*Initialize onLoad*/
@@ -470,6 +471,13 @@ mapControl.addTrackLocationControl = function() {
                 markerEl.src = './resources/img/geolocation_marker.png';
             }
         }
+        
+        function setView(view, c) {
+            if (self.trackingState) {
+                view.center = getCenterWithHeading(c, -c[2], view.resolution);
+                view.rotation = -c[2];
+            }
+        }
 
         var previousM = 0;
         // change center and rotation before render
@@ -483,8 +491,7 @@ mapControl.addTrackLocationControl = function() {
                 var c = positions.getCoordinateAtM(m, true);
                 var view = frameState.viewState;
                 if (c) {
-                    view.center = getCenterWithHeading(c, -c[2], view.resolution);
-                    view.rotation = -c[2];
+                    setView(view, c);
                     marker.setPosition(c);
                 }
             }
@@ -509,28 +516,27 @@ mapControl.addTrackLocationControl = function() {
         }
 
         // geolocate device
-        /*
-        $("#track_location_button").click(function() {
+        geolocateBtn.addEventListener('click', function(evt) {
+            self.trackingState = true;
             geolocation.setTracking(true); // Start position tracking
             document.getElementById("track_location_image").src = "./resources/img/location_icon_green.png";
             self.map.on('postcompose', render);
             self.map.render();
-        });
-        */
-        geolocateBtn.addEventListener('click', function() {
-            geolocation.setTracking(true); // Start position tracking
-            document.getElementById("track_location_image").src = "./resources/img/location_icon_green.png";
-            self.map.on('postcompose', render);
-            self.map.render();
+            evt.stopPropagation();
         }, false);
         
+        $('html').click(function() {
+            self.trackingState = false;
+            document.getElementById("track_location_image").src = "./resources/img/location_icon_white.png";
+            
+        });
 
-        var element = document.createElement('div');
-        element.className = 'track-location ol-unselectable ol-control';
-        element.appendChild(geolocateBtn);
+        var geolocateBtn_container = document.createElement('div');
+        geolocateBtn_container.className = 'track-location ol-unselectable ol-control';
+        geolocateBtn_container.appendChild(geolocateBtn);
         
         ol.control.Control.call(this, {
-            element: element,
+            element: geolocateBtn_container,
             target: options.target
          });
         
