@@ -7,7 +7,8 @@ var mapControl = {
     layerWMSURL : 'geoserver/wms',
     layers : [],
     baseLayers : [],
-    olLayers : []
+    olLayers : [], 
+    trackingState: false
 };
 
 /*Initialize onLoad*/
@@ -209,7 +210,12 @@ mapControl.getFeatureInfo = function(evt,obj){
                     success: function(data){
                         var jsonData;
                         try{
-                            jsonData = $.parseJSON(data);
+                            if(typeof data === 'object'){
+                                jsonData = data;
+                            }
+                            else{
+                                jsonData = $.parseJSON(data);
+                            }
                         }
                         catch(err){
                             return;
@@ -358,15 +364,19 @@ mapControl.addTrackLocationControl = function() {
         var options = opt_options || {};
 
         var geolocateBtn = document.createElement('button');
-        geolocateBtn.innerHTML = 'L';
-        //geolocateBtn.appendChild(document.createElement("INPUT").setAttribute("type","image").setAttribute("src","./resources/img/location_icon.png"));
+        geolocateBtn.setAttribute("id","track_location_button");
+        var buttonImage = document.createElement("INPUT");
+        buttonImage.setAttribute("type","image");
+        buttonImage.setAttribute("id","track_location_image");
+        buttonImage.setAttribute("src","./resources/img/location_icon_white.png");
+        geolocateBtn.appendChild(buttonImage);
         
         // Geolocation marker
         var markerEl = document.getElementById('geolocation_marker');
         var marker = new ol.Overlay({
-          positioning: 'center-center',
-          element: markerEl,
-          stopEvent: false
+            positioning: 'center-center',
+            element: markerEl,
+            stopEvent: false
         });
         self.map.addOverlay(marker);
 
@@ -378,45 +388,46 @@ mapControl.addTrackLocationControl = function() {
 
         // Geolocation Control
         var geolocation = new ol.Geolocation(/** @type {olx.GeolocationOptions} */ ({
-          projection: self.view.getProjection(),
-          trackingOptions: {
-            maximumAge: 10000,
-            enableHighAccuracy: true,
-            timeout: 600000
-          }
+            projection: self.view.getProjection(),
+            trackingOptions: {
+                maximumAge: 10000,
+                enableHighAccuracy: true,
+                timeout: 600000
+            }
         }));
 
         var deltaMean = 500; // the geolocation sampling period mean in ms
 
         // Listen to position changes
         geolocation.on('change', function(evt) {
-          var position = geolocation.getPosition();
-          var accuracy = geolocation.getAccuracy();
-          var heading = geolocation.getHeading() || 0;
-          var speed = geolocation.getSpeed() || 0;
-          var m = Date.now();
+            var position = geolocation.getPosition();
+            var accuracy = geolocation.getAccuracy();
+            var heading = geolocation.getHeading() || 0;
+            var speed = geolocation.getSpeed() || 0;
+            var m = Date.now();
 
-          addPosition(position, heading, m, speed);
+            addPosition(position, heading, m, speed);
 
-          var coords = positions.getCoordinates();
-          var len = coords.length;
-          if (len >= 2) {
-            deltaMean = (coords[len - 1][3] - coords[0][3]) / (len - 1);
-          }
+            var coords = positions.getCoordinates();
+            var len = coords.length;
+            if (len >= 2) {
+                deltaMean = (coords[len - 1][3] - coords[0][3]) / (len - 1);
+            }
 
-          var html = [
-            'Posição: ' + position[0].toFixed(2) + ', ' + position[1].toFixed(2),
-            'Precisão: ' + accuracy,
-            'Direção: ' + Math.round(radToDeg(heading)) + '&deg;',
-            'Velocidade: ' + (speed * 3.6).toFixed(1) + ' km/h',
-            'Delta: ' + Math.round(deltaMean) + 'ms'
-          ].join('<br />');
-          $("[data-toggle='tooltip']").tooltip({title: html, html: true, trigger: "hover"}); 
+            var html = [
+                'Posição: ' + position[0].toFixed(2) + ', ' + position[1].toFixed(2),
+                'Precisão: ' + accuracy,
+                'Direção: ' + Math.round(radToDeg(heading)) + '&deg;',
+                'Velocidade: ' + (speed * 3.6).toFixed(1) + ' km/h',
+                'Delta: ' + Math.round(deltaMean) + 'ms'
+            ].join('<br />');
+            $("[data-toggle='tooltip']").tooltip({title: html, html: true, trigger: "hover"}); 
         });
 
         geolocation.on('error', function() {
-          alert('geolocation error');
-          // FIXME we should remove the coordinates in positions
+            alert('geolocation error');
+            // remove the coordinates in positions
+            positions.clear();
         });
 
         // convert radians to degrees
@@ -433,52 +444,58 @@ mapControl.addTrackLocationControl = function() {
         }
 
         function addPosition(position, heading, m, speed) {
-          var x = position[0];
-          var y = position[1];
-          var fCoords = positions.getCoordinates();
-          var previous = fCoords[fCoords.length - 1];
-          var prevHeading = previous && previous[2];
-          if (prevHeading) {
-            var headingDiff = heading - mod(prevHeading);
+            var x = position[0];
+            var y = position[1];
+            var fCoords = positions.getCoordinates();
+            var previous = fCoords[fCoords.length - 1];
+            var prevHeading = previous && previous[2];
+            if (prevHeading) {
+                var headingDiff = heading - mod(prevHeading);
 
-            // force the rotation change to be less than 180°
-            if (Math.abs(headingDiff) > Math.PI) {
-              var sign = (headingDiff >= 0) ? 1 : -1;
-              headingDiff = - sign * (2 * Math.PI - Math.abs(headingDiff));
+                // force the rotation change to be less than 180°
+                if (Math.abs(headingDiff) > Math.PI) {
+                    var sign = (headingDiff >= 0) ? 1 : -1;
+                    headingDiff = - sign * (2 * Math.PI - Math.abs(headingDiff));
+                }
+                heading = prevHeading + headingDiff;
             }
-            heading = prevHeading + headingDiff;
-          }
-          positions.appendCoordinate([x, y, heading, m]);
+            positions.appendCoordinate([x, y, heading, m]);
 
-          // only keep the 20 last coordinates
-          positions.setCoordinates(positions.getCoordinates().slice(-20));
+            // only keep the 20 last coordinates
+            positions.setCoordinates(positions.getCoordinates().slice(-20));
 
-          // FIXME use speed instead
-          if (heading && speed) {
-            markerEl.src = './resources/img/geolocation_marker_heading.png';
-          } else {
-            markerEl.src = './resources/img/geolocation_marker.png';
-          }
+            // FIXME use speed instead
+            if (heading && speed) {
+                markerEl.src = './resources/img/geolocation_marker_heading.png';
+            } else {
+                markerEl.src = './resources/img/geolocation_marker.png';
+            }
+        }
+        
+        function setView(view, c) {
+            if (self.trackingState) {
+                view.center = getCenterWithHeading(c, -c[2], view.resolution);
+                view.rotation = -c[2];
+            }
         }
 
         var previousM = 0;
         // change center and rotation before render
         self.map.beforeRender(function(map, frameState) {
-          if (frameState !== null) {
-            // use sampling period to get a smooth transition
-            var m = frameState.time - deltaMean * 1.5;
-            m = Math.max(m, previousM);
-            previousM = m;
-            // interpolate position along positions LineString
-            var c = positions.getCoordinateAtM(m, true);
-            var view = frameState.viewState;
-            if (c) {
-              //view.center = getCenterWithHeading(c, -c[2], view.resolution);
-              //view.rotation = -c[2];
-              marker.setPosition(c);
+            if (frameState !== null) {
+                // use sampling period to get a smooth transition
+                var m = frameState.time - deltaMean * 1.5;
+                m = Math.max(m, previousM);
+                previousM = m;
+                // interpolate position along positions LineString
+                var c = positions.getCoordinateAtM(m, true);
+                var view = frameState.viewState;
+                if (c) {
+                    setView(view, c);
+                    marker.setPosition(c);
+                }
             }
-          }
-          return true; // Force animation to continue
+            return true; // Force animation to continue
         });
 
         // recenters the view by putting the given coordinates at 3/4 from the top or
@@ -499,24 +516,27 @@ mapControl.addTrackLocationControl = function() {
         }
 
         // geolocate device
-        geolocateBtn.addEventListener('click', function() {
-          geolocation.setTracking(true); // Start position tracking
-
-          self.map.on('postcompose', render);
-          self.map.render();
-
-          //disableButtons();
+        geolocateBtn.addEventListener('click', function(evt) {
+            self.trackingState = true;
+            geolocation.setTracking(true); // Start position tracking
+            document.getElementById("track_location_image").src = "./resources/img/location_icon_green.png";
+            self.map.on('postcompose', render);
+            self.map.render();
+            evt.stopPropagation();
         }, false);
+        
+        $('html').click(function() {
+            self.trackingState = false;
+            document.getElementById("track_location_image").src = "./resources/img/location_icon_white.png";
+            
+        });
 
-        //button.addEventListener('click', trackLocation, false);
-        //button.addEventListener('touchstart', trackLocation, false);
-
-        var element = document.createElement('div');
-        element.className = 'track-location ol-unselectable ol-control';
-        element.appendChild(geolocateBtn);
+        var geolocateBtn_container = document.createElement('div');
+        geolocateBtn_container.className = 'track-location ol-unselectable ol-control';
+        geolocateBtn_container.appendChild(geolocateBtn);
         
         ol.control.Control.call(this, {
-            element: element,
+            element: geolocateBtn_container,
             target: options.target
          });
         
