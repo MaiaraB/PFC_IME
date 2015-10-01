@@ -41,7 +41,7 @@ else{
     LayerHandler.constructor = LayerHandler;
     LayerHandler.prototype.mapping = function(){
         return { name : "",
-            wmsId : "",style : "",opacity : "",features : [{name : "",wmsId :""}],accessLevels: [{name : ""}]};
+            wmsId : "",style : {name : "",blob : ""},opacity : "",features : [{name : "",wmsId :""}],accessLevels: [{name : ""}]};
     };
     
     LayerHandler.prototype.obeyRestrictions = function(matchObject){
