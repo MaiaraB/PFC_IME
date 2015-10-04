@@ -178,6 +178,15 @@ WMSCRUD.ObjectHandler.prototype.loadObj = function(self,loadedObject){
                        }
                     }
                 }
+                else if(typeof loadedObject[key] === 'object'){
+                    console.log(loadedObject[key]);
+                    for(var param in loadedObject[key]){
+                        var viewElement = self.objectDiv.find("."+self.viewIdPreffix+"-object-"+key+"-"+param).first();
+                        console.log(viewElement);
+                        viewElement.val('');
+                        viewElement.val(loadedObject[key][param]);
+                    }
+                }
                 else{
                     var viewElement = self.objectDiv.find(objectKeySelector).first();
                     viewElement.val('');
@@ -328,6 +337,13 @@ WMSCRUD.ObjectHandler.prototype.initializeObject = function(self){
                             objectInit[key].push(nestedObject);
                         });
                     }
+                }
+                else if(typeof self.mappingObject[key] === 'object'){
+                    var composedObject = {};
+                    for(var param in self.mappingObject[key]){
+                        composedObject[param] = self.objectDiv.find("."+self.viewIdPreffix+"-object-"+key+"-"+param).first().val();
+                    }
+                    objectInit[key] = composedObject;
                 }
                 else{
                     objectInit[key] = self.objectDiv.find("."+self.viewIdPreffix+"-object-"+key).first().val();

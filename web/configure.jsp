@@ -19,7 +19,11 @@
         <!--Font Awesome-->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/font-awesome-4.4.0/css/font-awesome.min.css"/>
         <script src="${pageContext.request.contextPath}/resources/LABjs-2.0.3/LAB.min.js"></script>
-        <!--Jquery Upload File-->
+        <!--Jquery File Uploar-->
+        <!--script src="resources/js/jQuery-File-Upload/js/jquery.iframe-transport.js"></script-->
+        <!--script src="resources/js/jQuery-File-Upload/js/jquery.fileupload.js"></script>
+        <!--script src="resources/js/jQuery-File-Upload/js/vendor/jquery.ui.widget.js"></script-->
+        <link rel="stylesheet" href="resources/js/jQuery-File-Upload/css/jquery.fileupload.css">
         <script type="text/javascript">
             $(document).ready(function(){
                 $LAB
@@ -27,6 +31,9 @@
                 .script("${pageContext.request.contextPath}/resources/js/wmscrud-implementation.js").wait()
                 .script("${pageContext.request.contextPath}/resources/js/wmscrud-uihandler.js")
                 .script("${pageContext.request.contextPath}/resources/js/jquery-ui-1.11.4.custom/jquery-ui.min.js")
+                .script("resources/js/jQuery-File-Upload/js/vendor/jquery.ui.widget.js")
+                .script("resources/js/jQuery-File-Upload/js/jquery.iframe-transport.js")
+                .script("resources/js/jQuery-File-Upload/js/jquery.fileupload.js")
                 .wait(function(){
                     if(typeof LayerHandler === 'undefined' || UserHandler === 'undefined' || AccessLevelHandler === 'undefined'){
 
@@ -58,6 +65,8 @@
                         });
                     });
                     
+                    $("#style-panel").find(".panel-body").hide();
+                    
                     $(".select-all-checkbox").each(function(){
                         $(this).click(function(){
                             var self = this;
@@ -73,18 +82,43 @@
                         placeholder : "handler-object-features-placeholder"
                     });
                     
-                    try{
-                        var configurationContainer = $(".configuration-import-export").first();
-                        var configurationExportButton = configurationContainer.find("#export-configuration-button").first();
-                        var configurationExportContainer = configurationContainer.find("#export-configuration-container").first();    
-                        /*var configurationExportFile = configurationContainer.find("#export-configuration-input");
-                        configurationExportButton.click(function(event){
-                            configurationExportFile.click();
-                        });*/
-                    }
-                    catch(err){
-                        console.log("Could not load file exporter");
-                    }
+                    var configurationContainer = $(".configuration-import-export").first();
+                    var configurationExportUpload = configurationContainer.find("#export-fileupload").first();
+                    var configurationExportProgress = configurationContainer.find("#export-progress").first();
+                    var configurationFileExport = configurationContainer.find('#export-files').first();
+                    var configurationFileImport = configurationContainer.find("#import-configuration");
+                    var urlExport = "export-configuration";
+                    var urlImport = "import-configuration";
+                    configurationExportUpload.fileupload({
+                        url: urlExport,
+                        dataType: 'html',
+                        acceptFileTypes: /(\.|\/)(cfg)$/i,
+                        dropZone: $(".undefined"),
+                        done: function (e, data) {
+                            console.log(e);
+                            console.log(data);
+                            configurationFileExport.empty();
+                            $.each(data.files, function (index, file) {
+                                $('<p/>').text(file.name).appendTo(configurationFileExport);
+                            });
+                            configurationExportProgress.fadeOut(3000);
+                        },
+                        progressall: function (e, data) {
+                            if(!configurationExportProgress.is(":visible")){
+                                configurationExportProgress.show();
+                            }
+                            var progress = parseInt(data.loaded / data.total * 100, 10);
+                            configurationExportProgress.find('.progress-bar').css(
+                                'width',
+                                progress + '%'
+                            );
+                        }
+                    });
+                    
+                    configurationFileImport.click(function(e){
+                        e.preventDefault();
+                        window.location.href = urlImport;
+                    });
                     
                 });
             });
@@ -153,6 +187,14 @@
                 margin-bottom: 0px;
                 margin-top:0px;
             }
+            
+            #export-files{
+                color : white;
+            }
+            
+            #export-progress{
+                margin-top: 10px;
+            }
         </style>
     </head>
     <body>
@@ -214,7 +256,7 @@
                                     </div>
                                     <div class="input-group">
                                         <label for="handler-object-name" class="input-group-addon">Estilo:</label>
-                                        <input type="text" class="form-control handler-object-style handler-field" placeholder="Estilo">
+                                        <input type="text" class="form-control handler-object-style-name handler-field" placeholder="Estilo">
                                     </div>
                                     <div class="input-group">
                                         <label for="handler-object-name" class="input-group-addon">Opacidade:</label>
@@ -415,14 +457,34 @@
                     </div>
             </div>  
             
+            <!-- STYLE -->
+            
+            <div id="style-panel" class="panel panel-default">
+                <div class="panel-heading clickable slidable">
+                    <span class="glyphicon glyphicon-list"></span>Estilos
+                </div>
+                <div class="row panel-body">
+                    
+                </div>
+            </div>  
             <!-- IMPORT-EXPORT -->
             
-            <div class="col-xs-8 col-xs-offset-2 col-md-4 col-md-offset-4 btn-group configuration-import-export">
-                <button id="import-configuration" class="btn btn-lg btn-success col-xs-6">Importar</button>
-                <div style="display:none">
-                    <input id="export-configuration-container" type="file" style="display:none">
+            <div class="col-xs-8 col-xs-offset-2 col-md-4 col-md-offset-4 configuration-import-export">
+                <div class="btn-group col-xs-12">
+                    <button id="import-configuration" class="btn btn-lg btn-success col-xs-6">
+                        <span>Importar</span>
+                    </button>
+                    <button id="export-configuration" class="btn btn-lg btn-info fileinput-button col-xs-6" >
+                        <span>Exportar</span>
+                        <input id="export-fileupload" type="file" name="files[]">
+                    </button>
                 </div>
-                <button id="export-configuration-button" type="button" class="btn btn-lg btn-info col-xs-6">Exportar</button>
+                <div class="col-xs-12">
+                    <div id="export-progress" class="progress" style="display:none">
+                    <div class="progress-bar progress-bar-success"></div>
+                    </div>
+                    <div id="export-files" class="col-xs-12"></div>
+                </div>
             </div>
             
             <!-- MESSAGE-CONTAINER-->
