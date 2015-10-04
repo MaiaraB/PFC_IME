@@ -13,13 +13,10 @@ and open the template in the editor.
 .navbar-offset { margin-top: 50px; }
 #map { position: absolute; top: 50px; bottom: 0px; left: 0px; right: 0px; }
 #map .ol-zoom { 
-    font-size: 1.2em;
-    top: -moz-calc(100% - 100px);
-    top: -webkit-calc(100% - 100px);
-    top: calc(100% - 100px);
-    left: -moz-calc(100% - 38px);
-    left: -webkit-calc(100% - 38px);
-    left: calc(100% - 38px);
+    top: auto;
+    left: auto;
+    bottom: 3.1em;
+    right: .5em;
 }
 
 .map:-moz-full-screen {
@@ -103,12 +100,8 @@ and open the template in the editor.
 }
 
 .track-location {
-    top: -moz-calc(100% - 133px);
-    top: -webkit-calc(100% - 133px);
-    top: calc(100% - 133px);
-    left: -moz-calc(100% - 35px);
-    left: -webkit-calc(100% - 35px);
-    left: calc(100% - 35px);
+    bottom: 7.8em;
+    right: .5em;
 }
 
 .marker-tooltip + .tooltip > .tooltip-inner{

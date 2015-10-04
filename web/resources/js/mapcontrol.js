@@ -525,7 +525,7 @@ mapControl.addTrackLocationControl = function() {
             evt.stopPropagation();
         }, false);
         
-        $('html').click(function() {
+        $('#map').click(function() {
             self.trackingState = false;
             document.getElementById("track_location_image").src = "./resources/img/location_icon_white.png";
             
